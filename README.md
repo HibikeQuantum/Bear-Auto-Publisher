@@ -92,3 +92,10 @@ or leave list empty for all notes: `limit_export_to_tags = []`
 You have Bear on Mac but also want your notes on your Android phone, on Linux or Windows machine at your office. Or you want them available online in a browser from any desktop computer. Here is a solution (or call it workaround) for now, until Bear comes with an online, Windows, or Android solution ;)
 
 Happy syncing! ;)
+
+### TEST
+if you want function test
+try next command at root
+```python
+python test/test_export_sync.py
+```
