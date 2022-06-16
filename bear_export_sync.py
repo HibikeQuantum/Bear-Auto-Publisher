@@ -352,9 +352,15 @@ def hide_tags(md_text):
     return md_text
 
 def bold_conv(md_text):
-    # Hide tags from being seen as H1, by placing `period+space` at start of line:
+    # replace md *text* to **text**
     if is_bold_conv_mode:
-        md_text =  re.sub(r'(\n)[ \t]*(\#[^\s#].*)', r'\1<!-- \2 -->', md_text)
+md_text = """
+*볼드체*
+"*이런타입은*은 **볼드체** 로 바꿔주고
+"""
+print(md_text)
+md_text =  re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'**\1**', md_text)
+print(md_text)
 
     return md_text
 
