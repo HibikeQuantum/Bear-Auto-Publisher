@@ -1,6 +1,6 @@
 ## PR Checklist
 Please check if your PR fulfills the following requirements:
-
+- Issue : 
 - [ ] The commit message follows next guideline  
 	(1) It must has 'issue' number  
   	(2) over 50 lines or significant changes related to the main function, the commit message must have a 'title-content' structure.  
