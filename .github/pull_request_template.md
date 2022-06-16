@@ -1,16 +1,16 @@
 ## PR Checklist
 Please check if your PR fulfills the following requirements:
 
-- [ ] The commit message follows next guideline: 
-  (1) It must has 'issue' number 
-  (2) If there are more than 50 lines or significant changes related to the main function, the commit message must have a title content structure.
-  (3) Title, capitalize the first letter of the first letter of the title
-  (4) At the end of the title. Ban
-	(5) The title is an imperative tone
-	(6) Change the line every 72 characters in English
-	(7) Write the text according to what and why rather than how
-- [ ] Tests for the changes have been added (for bug fixes / features)
-- [ ] Docs have been added / updated (for bug fixes / features)
+- [ ] The commit message follows next guideline  
+	(1) It must has 'issue' number  
+  	(2) over 50 lines or significant changes related to the main function, the commit message must have a 'title-content' structure.  
+  	(3) Title, capitalize the first letter of the first letter of the title  
+	(4) At the end of the title '.' Ban  
+	(5) The title is an imperative tone  
+	(6) Change the line every 72 characters in English  
+	(7) Write the text according to what and why rather than how  
+- [ ] Tests for the changes have been added (for bug fixes / features)  
+- [ ] Docs have been added / updated (for bug fixes / features)  
 
 
 ## PR Type
