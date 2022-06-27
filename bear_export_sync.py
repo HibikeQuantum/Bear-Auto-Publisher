@@ -55,6 +55,9 @@ export_image_repository = True  # Export all notes as md but link images to
                                  # a common repository exported to: `assets_path` 
                                  # Only used if `export_as_textbundles = False`
 
+is_bold_conv_mode = True # if U don't want convert bold char. change value to False
+debug_mode = True #Print each varaible's value and type. At prod please set false
+
 import os
 HOME = os.getenv('HOME', '')
 default_out_folder = os.path.join(HOME, "Work", "BearNotes")
@@ -180,6 +183,9 @@ def export_markdown():
             file_list.append(os.path.join(temp_path, filename))
         if file_list:
             mod_dt = dt_conv(modified)
+            md_text = hide_tags(md_text)
+            # TODO: bold
+            md_text = bold_conv(md_text)
             md_text = hide_tags(md_text)
             md_text += '\n\n<!-- {BearID:' + uuid + '} -->\n'
             for filepath in file_list:
@@ -346,6 +352,14 @@ def hide_tags(md_text):
         md_text =  re.sub(r'(\n)[ \t]*(\#[^\s#]+)', r'\1. \2', md_text)
     return md_text
 
+def bold_conv(md_text):
+    # replace md *text* to **text**
+    if is_bold_conv_mode:
+        logger(md_text, "Before bold")
+        md_text =  re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'**\1**', md_text)
+        logger(md_text, "After Bolded")
+
+    return md_text
 
 def restore_tags(md_text):
     # Tags back to normal Bear tags, stripping the `period+space` at start of line:
@@ -720,3 +734,9 @@ def notify(message):
 
 if __name__ == '__main__':
     main()
+
+
+def logger(*args):
+    if (debug_mode==True):
+        for arg in args:
+            print("TYPE: ",type(arg),"VALUE:", arg)
