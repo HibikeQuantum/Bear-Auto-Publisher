@@ -22,8 +22,7 @@ class TestStringMethods(unittest.TestCase):
 
     def test_bold_conv(self):
         testItem = [
-            {'input': "*Bold*"},
-            {'expected': "**Bold**"},
+            {'input': "*Bold*", 'expected': "**Bold**"},
             {'input': "* Not bold*", 'expected': "* Not bold*"},
             {'input': "*Not bold *", 'expected': "*Not bold *"},
             {'input': "*Not Bold \n After CR*",
@@ -32,8 +31,19 @@ class TestStringMethods(unittest.TestCase):
 
         for item in testItem:
             item['output'] = bear_export_sync.bold_conv(item['input'])
-        self.assertEqual(item['expected'], item['output'])
+            self.assertEqual(item['expected'], item['output'])
 
+    def test_separator_conv(self):
+        seq = 1
+        testItem = [
+            {'input': "---",'expected': "\n---"},
+            {'input': "- --", 'expected': "- --"},
+            {'input': "hi---world", 'expected': "hi---world"},
+            {'input': "hello\n---\nhello", 'expected': "hello\n\n---\nhello"}]
+
+        for item in testItem:
+            item['output'] = bear_export_sync.separator_conv(item['input'])
+            self.assertEqual(item['expected'], item['output'])
 
 if __name__ == '__main__':
     unittest.main()
