@@ -56,6 +56,7 @@ export_image_repository = True  # Export all notes as md but link images to
                                  # Only used if `export_as_textbundles = False`
 
 is_bold_conv_mode = True # if U don't want convert bold char. change value to False
+debug_mode = True #Print each varaible's value and type. At prod please set false
 
 import os
 HOME = os.getenv('HOME', '')
@@ -354,13 +355,9 @@ def hide_tags(md_text):
 def bold_conv(md_text):
     # replace md *text* to **text**
     if is_bold_conv_mode:
-md_text = """
-*볼드체*
-"*이런타입은*은 **볼드체** 로 바꿔주고
-"""
-print(md_text)
-md_text =  re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'**\1**', md_text)
-print(md_text)
+        logger(md_text, "Before bold")
+        md_text =  re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'**\1**', md_text)
+        logger(md_text, "After Bolded")
 
     return md_text
 
@@ -737,3 +734,9 @@ def notify(message):
 
 if __name__ == '__main__':
     main()
+
+
+def logger(*args):
+    if (debug_mode==True):
+        for arg in args:
+            print("TYPE: ",type(arg),"VALUE:", arg)
