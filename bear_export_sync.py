@@ -356,7 +356,7 @@ def bold_conv(md_text):
     # replace md *text* to **text**
     if is_bold_conv_mode:
         logger(md_text, "Before bold")
-        md_text =  re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'**\1**', md_text)
+        md_text =  re.sub(r'\*([^\s]+.*[^\s])+\*', r'**\1**', md_text)
         logger(md_text, "After Bolded")
 
     return md_text
