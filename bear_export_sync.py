@@ -163,7 +163,7 @@ def check_db_modified():
     last_export_ts = get_file_date(export_ts_file_exp)
     return db_ts > last_export_ts
 
-
+#TODO: Add execute code here for target feature.
 def export_markdown():
     with sqlite3.connect(bear_db) as conn:
         conn.row_factory = sqlite3.Row
@@ -185,7 +185,11 @@ def export_markdown():
         if file_list:
             mod_dt = dt_conv(modified)
             md_text = hide_tags(md_text)
+            # start: HibikeQuantum's function phase
             md_text = bold_conv(md_text)
+            md_text = separator_conv(md_text)
+            md_text = italic_conv(md_text)
+            # end: HibikeQuantum's function phase
             md_text = hide_tags(md_text)
             md_text += '\n\n<!-- {BearID:' + uuid + '} -->\n'
             for filepath in file_list:
@@ -369,6 +373,26 @@ def separator_conv(md_text):
         logger(md_text, "After sepa convert")
 
     return md_text
+
+def separator_conv(md_text):
+    # replace md /text/ to *text* 
+    if is_sepa_conv_mode:
+        logger(md_text, "Before sepa")
+        md_text =  re.sub(r'\*([^\s]+.*[^\s])+\*', r'**\1**', md_text)
+        logger(md_text, "After sepa convert")
+
+    return md_text
+
+def italic_conv(md_text):
+    # replace md /text/ to *text* 
+    if is_sepa_conv_mode:
+        logger(md_text, "Before italic_conv")
+        md_text =  re.sub(r'\/([^\s]+.*[^\s])+\/', r'*\1*', md_text)
+        logger(md_text, "After italic_conv convert")
+
+    return md_text
+
+#TODO: Add convert function here
 
 def restore_tags(md_text):
     # Tags back to normal Bear tags, stripping the `period+space` at start of line:
