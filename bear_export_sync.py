@@ -55,8 +55,17 @@ export_image_repository = True  # Export all notes as md but link images to
                                  # a common repository exported to: `assets_path` 
                                  # Only used if `export_as_textbundles = False`
 
-is_bold_conv_mode = True # if U don't want convert bold char. change value to False
-is_sepa_conv_mode = True # if U don't want insert newline before sparator at github. Change value to False
+# if U don't want convert each style, change value to False
+is_bold_conv_mode = True 
+is_sepa_conv_mode = True    # if U don't want insert newline before sparator at github. Change value to False.
+is_imageLink_conv_mode = True
+is_fileLink_conv_mode = True
+is_italic_conv_mode = True
+is_underline_conv_mode = True
+is_checkobx_conv_mode = True
+is_strike_conv_mode = True
+is_mark_conv_mode = True    # if U don't want insert newline at marked sentence. Change value to False
+
 debug_mode = True #Print each varaible's value and type. At prod please set false
 
 import os
@@ -374,25 +383,71 @@ def separator_conv(md_text):
 
     return md_text
 
-def separator_conv(md_text):
-    # replace md /text/ to *text* 
-    if is_sepa_conv_mode:
-        logger(md_text, "Before sepa")
-        md_text =  re.sub(r'\*([^\s]+.*[^\s])+\*', r'**\1**', md_text)
-        logger(md_text, "After sepa convert")
-
-    return md_text
-
 def italic_conv(md_text):
     # replace md /text/ to *text* 
-    if is_sepa_conv_mode:
+    if is_italic_conv_mode:
         logger(md_text, "Before italic_conv")
         md_text =  re.sub(r'\/([^\s]+.*[^\s])+\/', r'*\1*', md_text)
         logger(md_text, "After italic_conv convert")
 
     return md_text
 
+def undeline_conv(md_text):
+    # replace md
+    if is_underline_conv_mode:
+        logger(md_text, "Before")
+        md_text =  re.sub(r'', r'', md_text)
+        logger(md_text, "After")
+
+    return md_text
+
+def strike_conv(md_text):
+    # replace md
+    if is_strike_conv_mode:
+        logger(md_text, "Before")
+        md_text =  re.sub(r'', r'', md_text)
+        logger(md_text, "After")
+
+    return md_text
+
+def checkbox_conv(md_text):
+    # replace md
+    if is_checkbox_conv_mode:
+        logger(md_text, "Before")
+        md_text =  re.sub(r'', r'', md_text)
+        logger(md_text, "After")
+
+    return md_text
+
+def mark_conv(md_text):
+    # replace md
+    if is_mark_conv_mode:
+        logger(md_text, "Before")
+        md_text =  re.sub(r'', r'', md_text)
+        logger(md_text, "After")
+
+    return md_text
+
+def fileLink_conv(md_text):
+    # replace md
+    if is_fileLink_conv_mode:
+        logger(md_text, "Before")
+        md_text =  re.sub(r'', r'', md_text)
+        logger(md_text, "After")
+
+    return md_text
+
+def imageLink_conv(md_text):
+    # replace md
+    if is_imageLink_conv_mode:
+        logger(md_text, "Before")
+        md_text =  re.sub(r'', r'', md_text)
+        logger(md_text, "After")
+
+    return md_text
+
 #TODO: Add convert function here
+# phase 1 - underline, strike, checkbox, mark, file link, image link
 
 def restore_tags(md_text):
     # Tags back to normal Bear tags, stripping the `period+space` at start of line:
