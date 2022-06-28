@@ -34,7 +34,6 @@ class TestStringMethods(unittest.TestCase):
             self.assertEqual(item['expected'], item['output'])
 
     def test_separator_conv(self):
-        seq = 1
         testItem = [
             {'input': "---",'expected': "\n---"},
             {'input': "- --", 'expected': "- --"},
@@ -55,10 +54,60 @@ class TestStringMethods(unittest.TestCase):
             {'input': "/Italic/\n After", 'expected': "*Italic*\n After"}, ]
 
         for item in testItem:
-            item['output'] = bear_export_sync.separator_conv(item['input'])
+            item['output'] = bear_export_sync.italic_conv(item['input'])
             self.assertEqual(item['expected'], item['output'])
 
+    # def test_underline_conv(self):
+    #     testItem = [
+    #         {'input': "_Underline_", 'expected': "***Underline***"},
+    #         {'input': "_ Not Underline_", 'expected': "_ Not Underline_"},
+    #         {'input': "_Not Underline _", 'expected': "_Not Underline _"},
+    #         {'input': "_Not Underline \n After CR_",
+    #             'expected': "_Not Underline \n After CR_"},
+    #         {'input': "_Underline_\n After", 'expected': "***Underline***\n After"}, ]
+
+    #     for item in testItem:
+    #         item['output'] = bear_export_sync.underline_conv(item['input'])
+    #         self.assertEqual(item['expected'], item['output'])
+
+    # def test_strike_conv(self):
+    #     testItem = [
+    #         {'input': "-Strike-", 'expected': "~~Strike~~"},
+    #         {'input': "- Not Strike-", 'expected': "- Not Strike-"},
+    #         {'input': "-Not Strike -", 'expected': "-Not Strike -"},
+    #         {'input': "-Not Strike \n After CR-",
+    #             'expected': "-Not Strike \n After CR-"},
+    #         {'input': "-Strike-\n After", 'expected': "~~Strike~~\n After"}, ]
+
+    #     for item in testItem:
+    #         item['output'] = bear_export_sync.strike_conv(item['input'])
+    #         self.assertEqual(item['expected'], item['output'])
+
+    # def test_fileLink_conv(self):
+    #     testItem = [
+    #         {'input': "[file:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]",
+    #          'expected': "[💾myimsi.txt](https://github.com/HibikeQuantum/PlayGround/blob/master/Bear/files/5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt"},
+    #         {'input': "[none:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]", 'expected': "[none:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]"},
+    #     ]
+
+    #     for item in testItem:
+    #         item['output'] = bear_export_sync.fileLink_conv(item['input'])
+    #         self.assertEqual(item['expected'], item['output'])
+
+    # def test_imageLink_conv(self):
+    #     testItem = [
+    #         {'input': "[image:SFNoteIntro0_File1/Bear 3 columns.png]", 'expected': "![alt text](images/SFNoteIntro2_File0/Bear 3 columns.png)"},
+    #         {'input': "[ image:SFNoteIntro0_File1/Bear 3 columns.png]", 'expected': "[ image:SFNoteIntro0_File1/Bear 3 columns.png]"},
+    #         {'input': "[ image:SFNoteIntro0_File1/\wBear 3 columns.png]", 'expected': "[ image:SFNoteIntro0_File1/\wBear 3 columns.png]"}]
+
+    #     for item in testItem:
+    #         item['output'] = bear_export_sync.imageLink_conv(item['input'])
+    #         self.assertEqual(item['expected'], item['output'])
+
 #TODO: Add new test here
+# phase 1 - underline, strike, checkbox, mark, file link, image link
+# phase 2 - publish, diff, stactis
+# phase 3 - tag pattern
 
 if __name__ == '__main__':
     unittest.main()
