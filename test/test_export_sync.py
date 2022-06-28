@@ -45,5 +45,20 @@ class TestStringMethods(unittest.TestCase):
             item['output'] = bear_export_sync.separator_conv(item['input'])
             self.assertEqual(item['expected'], item['output'])
 
+    def test_italic_conv(self):
+        testItem = [
+            {'input': "/Italic/", 'expected': "*Italic*"},
+            {'input': "/ Not Italic/", 'expected': "/ Not Italic/"},
+            {'input': "/Not Italic /", 'expected': "/Not Italic /"},
+            {'input': "/Not Italic \n After CR/",
+                'expected': "/Not Italic \n After CR/"},
+            {'input': "/Italic/\n After", 'expected': "*Italic*\n After"}, ]
+
+        for item in testItem:
+            item['output'] = bear_export_sync.separator_conv(item['input'])
+            self.assertEqual(item['expected'], item['output'])
+
+#TODO: Add new test here
+
 if __name__ == '__main__':
     unittest.main()
