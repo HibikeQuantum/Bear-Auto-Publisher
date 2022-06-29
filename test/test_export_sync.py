@@ -57,31 +57,31 @@ class TestStringMethods(unittest.TestCase):
             item['output'] = bear_export_sync.italic_conv(item['input'])
             self.assertEqual(item['expected'], item['output'])
 
-    def test_underline_conv(self):
-        testItem = [
-            {'input': "_Underline_", 'expected': "***Underline***"},
-            {'input': "_ Not Underline_", 'expected': "_ Not Underline_"},
-            {'input': "_Not Underline _", 'expected': "_Not Underline _"},
-            {'input': "_Not Underline \n After CR_",
-                'expected': "_Not Underline \n After CR_"},
-            {'input': "_Underline_\n After", 'expected': "***Underline***\n After"}, ]
+    # def test_underline_conv(self):
+    #     testItem = [
+    #         {'input': "_Underline_", 'expected': "***Underline***"},
+    #         {'input': "_ Not Underline_", 'expected': "_ Not Underline_"},
+    #         {'input': "_Not Underline _", 'expected': "_Not Underline _"},
+    #         {'input': "_Not Underline \n After CR_",
+    #             'expected': "_Not Underline \n After CR_"},
+    #         {'input': "_Underline_\n After", 'expected': "***Underline***\n After"}, ]
 
-        for item in testItem:
-            item['output'] = bear_export_sync.underline_conv(item['input'])
-            self.assertEqual(item['expected'], item['output'])
+    #     for item in testItem:
+    #         item['output'] = bear_export_sync.underline_conv(item['input'])
+    #         self.assertEqual(item['expected'], item['output'])
 
-    def test_strike_conv(self):
-        testItem = [
-            {'input': "-Strike-", 'expected': "~~Strike~~"},
-            {'input': "- Not Strike-", 'expected': "- Not Strike-"},
-            {'input': "-Not Strike -", 'expected': "-Not Strike -"},
-            {'input': "-Not Strike \n After CR-",
-                'expected': "-Not Strike \n After CR-"},
-            {'input': "-Strike-\n After", 'expected': "~~Strike~~\n After"}, ]
+    # def test_strike_conv(self):
+    #     testItem = [
+    #         {'input': "-Strike-", 'expected': "~~Strike~~"},
+    #         {'input': "- Not Strike-", 'expected': "- Not Strike-"},
+    #         {'input': "-Not Strike -", 'expected': "-Not Strike -"},
+    #         {'input': "-Not Strike \n After CR-",
+    #             'expected': "-Not Strike \n After CR-"},
+    #         {'input': "-Strike-\n After", 'expected': "~~Strike~~\n After"}, ]
 
-        for item in testItem:
-            item['output'] = bear_export_sync.strike_conv(item['input'])
-            self.assertEqual(item['expected'], item['output'])
+    #     for item in testItem:
+    #         item['output'] = bear_export_sync.strike_conv(item['input'])
+    #         self.assertEqual(item['expected'], item['output'])
 
     # def test_fileLink_conv(self):
     #     testItem = [

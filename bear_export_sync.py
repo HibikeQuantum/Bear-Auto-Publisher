@@ -62,7 +62,7 @@ is_imageLink_conv_mode = True
 is_fileLink_conv_mode = True
 is_italic_conv_mode = True
 is_underline_conv_mode = True
-is_checkbox_conv_mode = True
+is_checkobx_conv_mode = True
 is_strike_conv_mode = True
 is_mark_conv_mode = True    # if U don't want insert newline at marked sentence. Change value to False
 
@@ -392,11 +392,11 @@ def italic_conv(md_text):
 
     return md_text
 
-def underline_conv(md_text):
+def undeline_conv(md_text):
     # replace md
     if is_underline_conv_mode:
         logger(md_text, "Before")
-        md_text =  re.sub(r'\_([^\s]+.*[^\s])+\_', r'***\1***', md_text)
+        md_text =  re.sub(r'', r'', md_text)
         logger(md_text, "After")
 
     return md_text
@@ -405,7 +405,7 @@ def strike_conv(md_text):
     # replace md
     if is_strike_conv_mode:
         logger(md_text, "Before")
-        md_text =  re.sub(r'\-([^\s]+.*[^\s])+\-', r'~~\1~~', md_text)
+        md_text =  re.sub(r'', r'', md_text)
         logger(md_text, "After")
 
     return md_text
