@@ -368,62 +368,62 @@ def hide_tags(md_text):
 def bold_conv(md_text):
     # replace md *text* to **text**
     if is_bold_conv_mode:
-        logger(md_text, "Before bold")
+        logger(md_text, "Before")
         md_text =  re.sub(r'\*([^\s]+.*[^\s])+\*', r'**\1**', md_text)
-        logger(md_text, "After Bolded")
+        logger(md_text, "After")
 
     return md_text
 
 def separator_conv(md_text):
     # replace md --- to \n---
     if is_sepa_conv_mode:
-        logger(md_text, "Before sepa")
+        logger(md_text, "Before")
         md_text =  re.sub(r'(\n---|^---)', r'\n\1', md_text)
-        logger(md_text, "After sepa convert")
+        logger(md_text, "After")
 
     return md_text
 
 def italic_conv(md_text):
     # replace md /text/ to *text* 
     if is_italic_conv_mode:
-        logger(md_text, "Before italic_conv")
+        logger(md_text, "Before")
         md_text =  re.sub(r'\/([^\s]+.*[^\s])+\/', r'*\1*', md_text)
-        logger(md_text, "After italic_conv convert")
+        logger(md_text, "After")
 
     return md_text
 
 def underline_conv(md_text):
     # replace md
     if is_underline_conv_mode:
-        logger(md_text, "Before underline")
+        logger(md_text, "Before")
         md_text =  re.sub(r'\_([^\s]+.*[^\s])+\_', r'***\1***', md_text)
-        logger(md_text, "After underline")
+        logger(md_text, "After")
 
     return md_text
 
 def strike_conv(md_text):
     # replace md
     if is_strike_conv_mode:
-        logger(md_text, "Before strike_conv")
+        logger(md_text, "Before")
         md_text =  re.sub(r'\-([^\s]+.*[^\s])+\-', r'~~\1~~', md_text)
-        logger(md_text, "After strike_conv")
+        logger(md_text, "After")
 
     return md_text
 
 def checkbox_conv(md_text):
     # replace md
     if is_checkbox_conv_mode:
-        logger(md_text, "Before checkbox_conv")
+        logger(md_text, "Before")
         md_text = re.sub(r'^(\+|\-)\s(.*)', r'\1\t\2', md_text)
-        logger(md_text, "After checkbox_conv")
+        logger(md_text, "After")
     return md_text
 
 def mark_conv(md_text):
     # replace md
     if is_mark_conv_mode:
-        logger(md_text, "Before", sys._getframe().f_code.co_name)
+        logger(md_text, "Before")
         md_text =  re.sub(r'\:\:([^\s]+.*[^\s])+\:\:', r'```diff\n\+ \1\n```\n', md_text)
-        logger(md_text, "After", sys._getframe().f_code.co_name)
+        logger(md_text, "After")
 
     return md_text
 
@@ -431,7 +431,7 @@ def fileLink_conv(md_text):
     # replace md
     if is_fileLink_conv_mode:
         logger(md_text, "Before")
-        md_text =  re.sub(r'', r'', md_text)
+        md_text =  re.sub(r'\[file\:([0-9A-Z-/]+)\/([\w\d\s].*\.\w{3,4})\]$', r'[💾\2](https://github.com/HibikeQuantum/PlayGround/blob/master/Bear/files/\1/\2)', md_text)
         logger(md_text, "After")
 
     return md_text
@@ -440,7 +440,7 @@ def imageLink_conv(md_text):
     # replace md
     if is_imageLink_conv_mode:
         logger(md_text, "Before")
-        md_text =  re.sub(r'', r'', md_text)
+        md_text =  re.sub(r'\[image\:([-_+~/\w\d\s]+)\/([\w\d\s].*\.\w{3,4})\]$', r'![\2](images/\1/\2)', md_text)
         logger(md_text, "After")
 
     return md_text
@@ -826,4 +826,4 @@ if __name__ == '__main__':
 def logger(*args):
     if (debug_mode==True):
         for arg in args:
-            print("TYPE: ",type(arg),"VALUE:", arg)
+            print("TYPE: ",type(arg),"VALUE:", arg, sys._getframe(2).f_code.co_name)
