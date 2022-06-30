@@ -111,26 +111,26 @@ class TestStringMethods(unittest.TestCase):
             item['output'] = bear_export_sync.checkbox_conv(item['input'])
             self.assertEqual(item['expected'], item['output'])
 
-    # def test_fileLink_conv(self):
-    #     testItem = [
-    #         {'input': "[file:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]",
-    #          'expected': "[💾myimsi.txt](https://github.com/HibikeQuantum/PlayGround/blob/master/Bear/files/5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt"},
-    #         {'input': "[none:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]", 'expected': "[none:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]"},
-    #     ]
+    def test_fileLink_conv(self):
+        testItem = [
+            {'input': "[file:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]",
+             'expected': "[💾myimsi.txt](https://github.com/HibikeQuantum/PlayGround/blob/master/Bear/files/5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt)"},
+            {'input': "[none:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]", 'expected': "[none:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]"},
+        ]
 
-    #     for item in testItem:
-    #         item['output'] = bear_export_sync.fileLink_conv(item['input'])
-    #         self.assertEqual(item['expected'], item['output'])
+        for item in testItem:
+            item['output'] = bear_export_sync.fileLink_conv(item['input'])
+            self.assertEqual(item['expected'], item['output'])
 
-    # def test_imageLink_conv(self):
-    #     testItem = [
-    #         {'input': "[image:SFNoteIntro0_File1/Bear 3 columns.png]", 'expected': "![alt text](images/SFNoteIntro2_File0/Bear 3 columns.png)"},
-    #         {'input': "[ image:SFNoteIntro0_File1/Bear 3 columns.png]", 'expected': "[ image:SFNoteIntro0_File1/Bear 3 columns.png]"},
-    #         {'input': "[ image:SFNoteIntro0_File1/\wBear 3 columns.png]", 'expected': "[ image:SFNoteIntro0_File1/\wBear 3 columns.png]"}]
+    def test_imageLink_conv(self):
+        testItem = [
+            {'input': "[image:SFNoteIntro0_File1/Bear 3 columns.png]", 'expected': "![Bear 3 columns.png](images/SFNoteIntro0_File1/Bear 3 columns.png)"},
+            {'input': "[ image:SFNoteIntro0_File1/Bear 3 columns.png]", 'expected': "[ image:SFNoteIntro0_File1/Bear 3 columns.png]"},
+            {'input': "[ image:SFNoteIntro0_File1/\wBear 3 columns.png]", 'expected': "[ image:SFNoteIntro0_File1/\wBear 3 columns.png]"}]
 
-    #     for item in testItem:
-    #         item['output'] = bear_export_sync.imageLink_conv(item['input'])
-    #         self.assertEqual(item['expected'], item['output'])
+        for item in testItem:
+            item['output'] = bear_export_sync.imageLink_conv(item['input'])
+            self.assertEqual(item['expected'], item['output'])
 
 #TODO: Add new test here
 # phase 1 - underline, strike, checkbox, mark, file link, image link
