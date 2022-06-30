@@ -83,6 +83,34 @@ class TestStringMethods(unittest.TestCase):
             item['output'] = bear_export_sync.strike_conv(item['input'])
             self.assertEqual(item['expected'], item['output'])
 
+    def test_mark_conv(self):
+        testItem = [
+            {'input': "::Mark::", 'expected': "```diff\n\+ Mark\n```\n"},
+            {'input': ":: Not Mark::", 'expected': ":: Not Mark::"},
+            {'input': "::Not Mark ::", 'expected': "::Not Mark ::"},
+            {'input': "::Not Mark \n After CR::",
+                'expected': "::Not Mark \n After CR::"},
+            {'input': "::Mark::\n After", 'expected': "```diff\n\+ Mark\n```\n\n After"}, ]
+
+        for item in testItem:
+            item['output'] = bear_export_sync.mark_conv(item['input'])
+            self.assertEqual(item['expected'], item['output'])
+
+    def test_checkbox_conv(self):
+        testItem = [
+            {'input': "+ Checked", 'expected': "+\tChecked"},
+            {'input': "+Not Checked", 'expected': "+Not Checked"},
+            {'input': "- Empty", 'expected': "-\tEmpty"},
+            {'input': "-Not Empty", 'expected': "-Not Empty"},
+            {'input': "hello + Not Checked hello",
+                'expected': "hello + Not Checked hello"},
+            {'input': "hello - Not Empty hello",
+                'expected': "hello - Not Empty hello"},]
+
+        for item in testItem:
+            item['output'] = bear_export_sync.checkbox_conv(item['input'])
+            self.assertEqual(item['expected'], item['output'])
+
     # def test_fileLink_conv(self):
     #     testItem = [
     #         {'input': "[file:5C01D883-4077-4954-8E28-B7C91ED285B7-67965-000005BA6002A679/myimsi.txt]",

@@ -75,7 +75,7 @@ default_backup_folder = os.path.join(HOME, "Work", "BearSyncBackup")
 
 # NOTE! Your user 'HOME' path and '/BearNotes' is added below!
 # NOTE! So do not change anything below here!!!
-
+import sys
 import sqlite3
 import datetime
 import re
@@ -395,36 +395,35 @@ def italic_conv(md_text):
 def underline_conv(md_text):
     # replace md
     if is_underline_conv_mode:
-        logger(md_text, "Before")
+        logger(md_text, "Before underline")
         md_text =  re.sub(r'\_([^\s]+.*[^\s])+\_', r'***\1***', md_text)
-        logger(md_text, "After")
+        logger(md_text, "After underline")
 
     return md_text
 
 def strike_conv(md_text):
     # replace md
     if is_strike_conv_mode:
-        logger(md_text, "Before")
+        logger(md_text, "Before strike_conv")
         md_text =  re.sub(r'\-([^\s]+.*[^\s])+\-', r'~~\1~~', md_text)
-        logger(md_text, "After")
+        logger(md_text, "After strike_conv")
 
     return md_text
 
 def checkbox_conv(md_text):
     # replace md
     if is_checkbox_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'', r'', md_text)
-        logger(md_text, "After")
-
+        logger(md_text, "Before checkbox_conv")
+        md_text = re.sub(r'^(\+|\-)\s(.*)', r'\1\t\2', md_text)
+        logger(md_text, "After checkbox_conv")
     return md_text
 
 def mark_conv(md_text):
     # replace md
     if is_mark_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'', r'', md_text)
-        logger(md_text, "After")
+        logger(md_text, "Before", sys._getframe().f_code.co_name)
+        md_text =  re.sub(r'\:\:([^\s]+.*[^\s])+\:\:', r'```diff\n\+ \1\n```\n', md_text)
+        logger(md_text, "After", sys._getframe().f_code.co_name)
 
     return md_text
 
