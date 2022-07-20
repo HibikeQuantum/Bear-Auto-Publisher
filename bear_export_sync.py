@@ -37,7 +37,7 @@ or leave list empty for all notes: `limit_export_to_tags = []`
 * Or export as textbundles with images included 
 '''
 
-make_tag_folders = True  # Exports to folders using first tag only, if `multi_tag_folders = False`
+make_tag_folders = False  # Exports to folders using first tag only, if `multi_tag_folders = False`
 multi_tag_folders = True  # Copies notes to all 'tag-paths' found in note!
                           # Only active if `make_tag_folders = True`
 hide_tags_in_comment_block = True  # Hide tags in HTML comments: `<!-- #mytag -->`
@@ -59,14 +59,19 @@ export_image_repository = True  # Export all notes as md but link images to
 is_bold_conv_mode = True 
 is_sepa_conv_mode = True    # if U don't want insert newline before sparator at github. Change value to False.
 is_imageLink_conv_mode = True
-is_fileLink_conv_mode = True
+is_fileLink_conv_mode = False
 is_italic_conv_mode = True
 is_underline_conv_mode = True
 is_checkbox_conv_mode = True
 is_strike_conv_mode = True
 is_mark_conv_mode = True    # if U don't want insert newline at marked sentence. Change value to False
+is_codeblock_mode = True
 
-debug_mode = True #Print each varaible's value and type. At prod please set false
+debug_mode = False #Print each varaible's value and type. At prod please set false
+debug_mode_level_middle = True #Print each varaible's value and type. At prod please set false
+allow_only_test = False
+
+codeblock_flager = False
 
 import os
 HOME = os.getenv('HOME', '')
@@ -123,6 +128,7 @@ log_file = os.path.join(sync_backup, 'bear_export_sync_log.txt')
 bear_image_path = os.path.join(HOME,
     'Library/Group Containers/9K33E3U3T4.net.shinyfrog.bear/Application Data/Local Files/Note Images')
 assets_path = parsed_args.get("images") if parsed_args.get("images") else os.path.join(export_path, 'BearImages')
+# --images 받은 인자가 있으면 그걸 받고 없으면 default export 디렉토리의 BearImages를 참조하게 한다.
 
 sync_ts = '.sync-time.log'
 export_ts = '.export-time.log'
@@ -135,6 +141,10 @@ export_ts_file = os.path.join(temp_path, export_ts)
 gettag_sh = os.path.join(HOME, 'temp/gettag.sh')
 gettag_txt = os.path.join(HOME, 'temp/gettag.txt')
 
+fileLinkRegex = r'\[file\:([0-9A-Z-/]+)\/(.+\.[\w]{3,20})\]'
+imageLinkRegex = r'\[image\:([-_+~/\w\d\s]+)\/(.+\.[\w]{3,20})\]$'
+# markRegex = r'(.*)\:\:([^\s]+.*[^\s]+)+\:\:(.*)'
+markRegex = r'(.*)\:\:([^\s]+.*[^\s]+)\:\:(.*)'
 
 def main():
     init_gettag_script()
@@ -145,8 +155,9 @@ def main():
         note_count = export_markdown()
         write_time_stamp()
         rsync_files_from_temp()
-        if export_image_repository and not export_as_textbundles:
+        if export_image_repository and not export_as_textbundles: #t/f가 기본이라 항시 실행된다.
             copy_bear_images()
+            rename_copied_file()
         # notify('Export completed')
         write_log(str(note_count) + ' notes exported to: ' + export_path)
         exit(1)
@@ -154,6 +165,10 @@ def main():
         print('*** No notes needed exports')
         exit(0)
 
+def rename_copied_file():
+    for (root, dirnames, filenames) in os.walk(export_path): 
+        for f in filenames:
+            os.rename(os.path.join(root, f), os.path.join(root, f.replace(' ', '_')))
 
 def write_log(message):
     if set_logging_on == True:
@@ -170,50 +185,82 @@ def check_db_modified():
         return True
     db_ts = get_file_date(bear_db)
     last_export_ts = get_file_date(export_ts_file_exp)
-    return db_ts > last_export_ts
+    #20220630 KTH
+    #return db_ts > last_export_ts
+    return True
 
 #TODO: Add execute code here for target feature.
 def export_markdown():
     with sqlite3.connect(bear_db) as conn:
         conn.row_factory = sqlite3.Row
         query = "SELECT * FROM `ZSFNOTE` WHERE `ZTRASHED` LIKE '0' AND `ZARCHIVED` LIKE '0'"
-        c = conn.execute(query)
+        documents = conn.execute(query)
     note_count = 0
-    for row in c:
-        title = row['ZTITLE']
-        md_text = row['ZTEXT'].rstrip()
-        creation_date = row['ZCREATIONDATE']
-        modified = row['ZMODIFICATIONDATE']
-        uuid = row['ZUNIQUEIDENTIFIER']
+
+    for document in documents:
+        global codeblock_flager
+        codeblock_flager = False
+        #TODO: Below code is for temp test code
+        if document['ZTITLE'].find("test") == -1:
+            if (allow_only_test is True):
+                continue
+        print(document['ZTITLE'] + "<><> 작업시작")
+        #test block end------------------------
+        title = document['ZTITLE']
+        md_text = document['ZTEXT'].rstrip()
+        creation_date = document['ZCREATIONDATE']
+        modified = document['ZMODIFICATIONDATE']
+        uuid = document['ZUNIQUEIDENTIFIER']
         filename = clean_title(title)
+
         file_list = []
         if make_tag_folders:
             file_list = sub_path_from_tag(temp_path, filename, md_text)
         else:
-            file_list.append(os.path.join(temp_path, filename))
-        if file_list:
-            mod_dt = dt_conv(modified)
-            md_text = hide_tags(md_text)
-            # start: HibikeQuantum's function phase
-            md_text = bold_conv(md_text)
-            md_text = separator_conv(md_text)
-            md_text = italic_conv(md_text)
-            # end: HibikeQuantum's function phase
-            md_text = hide_tags(md_text)
-            md_text += '\n\n<!-- {BearID:' + uuid + '} -->\n'
-            for filepath in file_list:
-                note_count += 1
-                # print(filepath)
-                if export_as_textbundles:
-                    if check_image_hybrid(md_text):
-                        make_text_bundle(md_text, filepath, mod_dt)                        
-                    else:
-                        write_file(filepath + '.md', md_text, mod_dt)
-                elif export_image_repository:
-                    md_proc_text = process_image_links(md_text, filepath)
-                    write_file(filepath + '.md', md_proc_text, mod_dt)
-                else:
-                    write_file(filepath + '.md', md_text, mod_dt)
+            file_list.append(os.path.join(temp_path, filename))        
+        if file_list != []:
+            print(title, " > DOC CONVERTING START!!!")
+            splited_sentences = md_text.split("\n")
+            joined_Sentences = ""
+            splitChar= "\n\n"
+            
+            for (sentence) in splited_sentences:
+                if sentence is None:
+                    continue
+
+                sentence_dict = {
+                    "sentence":sentence,
+                    "underline_conv_flag":False,
+                    "bold_conv_flag":False,
+                    "italic_conv_flag":False,
+                    "strike_conv_flag":False,
+                }
+                mod_dt = dt_conv(modified)
+                sentence_dict = hide_tags(sentence_dict)
+                sentence_dict = codeblock_tainter(sentence_dict)
+                sentence_dict = checkbox_conv(sentence_dict)
+                sentence_dict = bold_conv(sentence_dict)        # * -> **
+                sentence_dict = separator_conv(sentence_dict)   
+                sentence_dict = underline_conv(sentence_dict)   # _ -> ***
+                sentence_dict = italic_conv(sentence_dict)      # / -> *
+                sentence_dict = strike_conv(sentence_dict)
+                sentence_dict = mark_conv(sentence_dict)
+                for filepath in file_list: # 연결시킬 파일들의 이름이 올라온다.
+                    note_count += 1
+                    if export_as_textbundles: #default value False
+                        if check_image_hybrid(md_text):
+                            make_text_bundle(md_text, filepath, mod_dt)                        
+                        else:
+                            write_file(filepath + '.md', md_text, mod_dt)
+                    elif export_image_repository: #default value True
+                        sentence_dict = process_image_links(sentence_dict, filepath) #실제로 이미지링크가 파싱되는 함수
+                        # sentence = fileLink_conv(sentence)
+                if (splited_sentences[-1] == sentence_dict['sentence']):
+                    splitChar = ""
+                joined_Sentences += sentence_dict['sentence'] + splitChar
+
+            joined_Sentences += '\n\n<!-- {BearID:' + uuid + '} -->\n'
+            write_file(filepath + '.md', joined_Sentences, mod_dt) # 마지막 파일 작성
     return note_count
 
 
@@ -246,7 +293,7 @@ def make_text_bundle(md_text, filepath, mod_dt):
     matches = re.findall(r'\[image:(.+?)\]', md_text)
     for match in matches:
         image_name = match
-        new_name = image_name.replace('/', '_')
+        new_name = image_name.replace('/', '_') #여기 언더바를 넣는 로직이 있어서 내가 만든 함수랑 겹쳐서 꼬이는구나
         source = os.path.join(bear_image_path, image_name)
         target = os.path.join(assets_path, new_name)
         shutil.copy2(source, target)
@@ -261,7 +308,7 @@ def sub_path_from_tag(temp_path, filename, md_text):
     # Get tags in note:
     pattern1 = r'(?<!\S)\#([.\w\/\-]+)[ \n]?(?!([\/ \w]+\w[#]))'
     pattern2 = r'(?<![\S])\#([^ \d][.\w\/ ]+?)\#([ \n]|$)'
-    if multi_tag_folders:
+    if multi_tag_folders: #default False
         # Files copied to all tag-folders found in note
         tags = []
         for matches in re.findall(pattern1, md_text):
@@ -317,16 +364,28 @@ def sub_path_from_tag(temp_path, filename, md_text):
     return paths
 
 
-def process_image_links(md_text, filepath):
+def process_image_links(sentence_dict, filepath): #this file path is md file name, not image
     '''
     Bear image links converted to MD links
     '''
     root = filepath.replace(temp_path, '')
     level = len(root.split('/')) - 2
     parent = '../' * level
-    md_text = re.sub(r'\[image:(.+?)\]', r'![](' + parent + r'BearImages/\1)', md_text)
-    return md_text
+    # filenameIndex = filepath.rfind('/') + 1
+    # print(filepath, "show me")
+    # filename=filepath[filenameIndex:].replace(" ","_")
+    #regex잡아서 파일이름부분을 잡고, replace 함수로 넘겨서 전부 _으로 바꾸는 로직을 해줘야함.
+    result_sentence = re.sub(r'(\[image:[A-Z0-9-]+?\/)(.*)(\..{2,20}\])', image_replacer, sentence_dict['sentence'])
+    result_sentence = re.sub(r'\[image:(.+?\/.*\..{2,20})\]', r'![](' + parent + r'/BearImages/\1)', result_sentence)
+    if( result_sentence != sentence_dict['sentence']):
+        logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+        sentence_dict['sentence'] = result_sentence
+        return sentence_dict
+    return sentence_dict
 
+
+def image_replacer(m):
+    return m.group(1) + m.group(2).replace(" ","_") + m.group(3)
 
 def restore_image_links(md_text):
     '''
@@ -345,9 +404,9 @@ def restore_image_links(md_text):
 
 def copy_bear_images():
     # Image files copied to a common image repository
-    subprocess.call(['rsync', '-r', '-t', '--delete', 
-                    bear_image_path + "/", assets_path])
-
+    subprocess.call(['rsync', '-r', '-t', '--delete', bear_image_path + "/", assets_path])
+    # rsync -rt --deleeditorconfigte /path/asset. This line mean reculsively copy file with timestamp, if there is no source file then delete backup file.
+    # 베어의 이미지 에셋에 접근해서 rsync to dest DIR
 
 def write_time_stamp():
     # write to time-stamp.txt file (used during sync)
@@ -357,93 +416,170 @@ def write_time_stamp():
                datetime.datetime.now().strftime("%Y-%m-%d at %H:%M:%S"), 0)
 
 
-def hide_tags(md_text):
+def hide_tags(sentence_dict):
     # Hide tags from being seen as H1, by placing `period+space` at start of line:
     if hide_tags_in_comment_block:
-        md_text =  re.sub(r'(\n)[ \t]*(\#[^\s#].*)', r'\1<!-- \2 -->', md_text)
+        sentence_dict['sentence'] =  re.sub(r'(\n)[ \t]*(\#[^\s#].*)', r'\1<!-- \2 -->', sentence_dict['sentence'])
     else:
-        md_text =  re.sub(r'(\n)[ \t]*(\#[^\s#]+)', r'\1. \2', md_text)
-    return md_text
+        sentence_dict['sentence'] =  re.sub(r'(\n)[ \t]*(\#[^\s#]+)', r'\1. \2', sentence_dict['sentence'])
+    return sentence_dict
 
-def bold_conv(md_text):
+def codeblock_tainter(sentence_dict):
+    global codeblock_flager
+    if is_codeblock_mode:
+        is_codeblock =  re.search(r'^\`\`\`.*', sentence_dict['sentence'])
+        if( is_codeblock is not None):
+            if(codeblock_flager == True):
+                codeblock_flager = False
+                logger(sentence_dict['sentence'], f" 🎧 CODE block END")
+            else :
+                codeblock_flager = True
+                logger(sentence_dict['sentence'], f" 🧫 CODE block START")
+            return sentence_dict
+    return sentence_dict
+
+def bold_conv(sentence_dict):
     # replace md *text* to **text**
-    if is_bold_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'\*([^\s]+.*[^\s])+\*', r'**\1**', md_text)
-        logger(md_text, "After")
+    if sentence_dict['bold_conv_flag'] == False:
+        if is_bold_conv_mode:
+            if checkAllowedPattern(sentence_dict):
+                result_sentence =  re.sub(r'\*{1}([^\s]?[^\*\n]+[^\s]?)\*{1}', bold_replacer, sentence_dict['sentence'])
+                if( result_sentence != sentence_dict['sentence']):
+                    logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                    sentence_dict['sentence'] = result_sentence
+                    sentence_dict['bold_conv_flag'] = True
+                    return sentence_dict
+    return sentence_dict
 
-    return md_text
 
-def separator_conv(md_text):
+def bold_replacer(m):
+    return "**" + m.group(1).strip() + "**"
+
+def separator_conv(sentence_dict):
     # replace md --- to \n---
     if is_sepa_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'(\n---|^---)', r'\n\1', md_text)
-        logger(md_text, "After")
+        result_sentence =  re.sub(r'(\n---|^---)', r'\n\1', sentence_dict['sentence'])
+        if( result_sentence != sentence_dict['sentence']):
+            logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+            sentence_dict['sentence'] = result_sentence
+            return sentence_dict
+    return sentence_dict
 
-    return md_text
-
-def italic_conv(md_text):
+def italic_conv(sentence_dict):
     # replace md /text/ to *text* 
     if is_italic_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'\/([^\s]+.*[^\s])+\/', r'*\1*', md_text)
-        logger(md_text, "After")
+        if checkAllowedPattern(sentence_dict):
+            result_sentence =  re.sub(r'\/{1}([^\s*]+)([^/\n]+)([^\s*]+)\/{1}', r'*\1\2\3*', sentence_dict['sentence'])
+            if( result_sentence != sentence_dict['sentence']):
+                logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                sentence_dict['sentence'] = result_sentence
+                sentence_dict['italic_conv_flag'] = True
+                return sentence_dict
+    return sentence_dict
 
-    return md_text
-
-def underline_conv(md_text):
+def underline_conv(sentence_dict):
     # replace md
     if is_underline_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'\_([^\s]+.*[^\s])+\_', r'***\1***', md_text)
-        logger(md_text, "After")
+        if checkAllowedPattern(sentence_dict):
+            result_sentence =  re.sub(r'\_{1}([^\n\_]+)\_{1}', underline_replacer, sentence_dict['sentence'])
+            if( result_sentence != sentence_dict['sentence']):
+                logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                sentence_dict['sentence'] = result_sentence
+                sentence_dict['underline_conv_flag'] = True
+                return sentence_dict
+    return sentence_dict
 
-    return md_text
 
-def strike_conv(md_text):
+def underline_replacer(m):
+    return "***" +  m.group(1).strip() + "***"
+
+def strike_conv(sentence_dict):
     # replace md
     if is_strike_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'\-([^\s]+.*[^\s])+\-', r'~~\1~~', md_text)
-        logger(md_text, "After")
+        if checkAllowedPattern(sentence_dict):
+            result_sentence =  re.sub(r'\-{1}([^\s]+)([^-\n]+)([^\s]+)\-{1}', strike_replacer, sentence_dict['sentence'])
+            if( result_sentence != sentence_dict['sentence']):
+                logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                sentence_dict['sentence'] = result_sentence
+                sentence_dict['strike_conv_flag'] = True
+                return sentence_dict
+    return sentence_dict
 
-    return md_text
+def strike_replacer(m):
+    return "~~" + m.group(1) + m.group(2) + m.group(3) + "~~"
 
-def checkbox_conv(md_text):
+def checkbox_conv(sentence_dict):
     # replace md
-    if is_checkbox_conv_mode:
-        logger(md_text, "Before")
-        md_text = re.sub(r'^(\+|\-)\s(.*)', r'\1\t\2', md_text)
-        logger(md_text, "After")
-    return md_text
+    if checkAllowedPattern(sentence_dict):
+        if is_checkbox_conv_mode:
+            result_sentence = re.sub(r'^(\+|\-)\s(.*)', checkbox_replacer, sentence_dict['sentence'])
+            if( result_sentence != sentence_dict['sentence']):
+                logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                sentence_dict['sentence'] = result_sentence
+                return sentence_dict
+    return sentence_dict
 
-def mark_conv(md_text):
+def checkbox_replacer(m):
+    if m.group(1) == '+':
+        return '+\t[x] ' + m.group(2)
+    if m.group(1) == '-':
+        return '-\t[ ] ' + m.group(2)
+    return  m.group(0)
+
+def mark_conv(sentence_dict):
     # replace md
     if is_mark_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'\:\:([^\s]+.*[^\s])+\:\:', r'```diff\n\+ \1\n```\n', md_text)
-        logger(md_text, "After")
+        if checkAllowedPattern(sentence_dict):
+            result_sentence = re.sub(markRegex, mark_replacer, sentence_dict['sentence'])
+            if( result_sentence != sentence_dict['sentence']):
+                logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                sentence_dict['sentence'] = result_sentence
+    return sentence_dict
 
-    return md_text
+def mark_replacer(m):
+    prefix = ""
+    suffix = ""
+    if m.group(1) != "":
+        prefix = m.group(1) + "\n"
+    if m.group(2) == "":
+        print("m.group(2) is empty, unexpected situation")
+    if m.group(3) != "":
+        suffix = m.group(3) + "\n"
+    return prefix + "```diff\n+ " + m.group(2) + "\n```\n" + suffix
 
-def fileLink_conv(md_text):
+def fileLink_conv(sentence_dict):
     # replace md
-    if is_fileLink_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'\[file\:([0-9A-Z-/]+)\/([\w\d\s].*\.\w{3,4})\]$', r'[💾\2](https://github.com/HibikeQuantum/PlayGround/blob/master/Bear/files/\1/\2)', md_text)
-        logger(md_text, "After")
+    if checkAllowedPattern(sentence_dict,"fileLink"):
+        if is_fileLink_conv_mode:
+            result_sentence =  re.sub(r'\[file\:([0-9A-Z-/]+)\/([\w\d\s]*\.[\w]{3,4})\]', r'[💾\2](https://github.com/HibikeQuantum/PlayGround/blob/master/Bear/files/\1/\2)', sentence_dict['sentence'])
+            if( result_sentence != sentence_dict['sentence']):
+                logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                sentence_dict['sentence'] = result_sentence
+                return sentence_dict
+    return sentence_dict
 
-    return md_text
+def imageLink_conv(sentence_dict):
+    # BearImages/C9BC8F82-6A30-4165-B911-55C63AC4718E-76434-0000075928935A8B/Screen Shot 2022-07-03 at 7.47.50.png
+    # ![](../BearImages/89C5883A-B535-4FB6-907A-3B29FF56E088-82667-0000032FC3D87CF3/Bear 3 columns.png)
+    if checkAllowedPattern(sentence_dict,"imageLink"):
+        if is_imageLink_conv_mode:
+            result_sentence =  re.sub(imageLinkRegex, r'![\2](images/\1/\2)', sentence_dict['sentence'])
+            if( result_sentence != sentence_dict['sentence']):
+                logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
+                sentence_dict['sentence'] = result_sentence
+                return sentence_dict
+    return sentence_dict
 
-def imageLink_conv(md_text):
-    # replace md
-    if is_imageLink_conv_mode:
-        logger(md_text, "Before")
-        md_text =  re.sub(r'\[image\:([-_+~/\w\d\s]+)\/([\w\d\s].*\.\w{3,4})\]$', r'![\2](images/\1/\2)', md_text)
-        logger(md_text, "After")
-
-    return md_text
+def checkAllowedPattern(sentence_dict, type="normal"):
+    global codeblock_flager
+    if codeblock_flager:
+        return False
+    elif(type == "normal"):
+            if re.search(imageLinkRegex, sentence_dict['sentence']) is not None: 
+                return False
+            if re.search(fileLinkRegex, sentence_dict['sentence']) is not None:
+                return False
+    return True
 
 #TODO: Add convert function here
 # phase 1 - underline, strike, checkbox, mark, file link, image link
@@ -556,7 +692,7 @@ def sync_md_updates():
     # Update synced timestamp file:
     update_sync_time_file(0)
     file_types = ('*.md', '*.txt', '*.markdown')
-    for (root, dirnames, filenames) in os.walk(export_path):
+    for (root, dirnames, filenames) in os.walk(export_path): 
         '''
         This step walks down into all sub folders, if any.
         '''
@@ -819,11 +955,16 @@ def notify(message):
     return
 
 
-if __name__ == '__main__':
-    main()
-
-
 def logger(*args):
+    if (debug_mode_level_middle==True):
+        string = ""
+        for arg in args:
+            string += arg
+        print(string)
+
     if (debug_mode==True):
         for arg in args:
             print("TYPE: ",type(arg),"VALUE:", arg, sys._getframe(2).f_code.co_name)
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,11 @@
+asgiref==3.4.1
+Django==3.2.13
+djangorestframework==3.13.1
+importlib-resources==5.4.0
+mysqlclient==2.1.0
+netaddr==0.8.0
+PyMySQL==1.0.2
+pytz==2022.1
+sqlparse==0.4.2
+typing_extensions==4.1.1
+zipp==3.6.0
