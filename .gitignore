@@ -1,6 +1,8 @@
 .DS_Store
 
+# Its private information
 Working/*
+Config/data.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,macos
