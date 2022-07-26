@@ -69,14 +69,17 @@ is_codeblock_mode = True
 
 debug_mode = False #Print each varaible's value and type. At prod please set false
 debug_mode_level_middle = True #Print each varaible's value and type. At prod please set false
-allow_only_test = False
+allow_only_test = True
 
 codeblock_flager = False
+allow_always_parsing = True
 
 import os
 HOME = os.getenv('HOME', '')
-default_out_folder = os.path.join(HOME, "Work", "BearNotes")
+CWD = os.path.dirname(os.path.abspath(__file__))
+export_path = os.path.join(CWD, "Working")
 default_backup_folder = os.path.join(HOME, "Work", "BearSyncBackup")
+
 
 # NOTE! Your user 'HOME' path and '/BearNotes' is added below!
 # NOTE! So do not change anything below here!!!
@@ -93,20 +96,38 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser(description="Sync Bear notes")
-parser.add_argument("--out", default=default_out_folder, help="Path where Bear notes will be synced")
 parser.add_argument("--backup", default=default_backup_folder, help="Path where conflicts will be backed up (must be outside of --out)")
 parser.add_argument("--images", default=None, help="Path where images will be stored")
 parser.add_argument("--skipImport", action="store_const", const=True, default=False, help="When present, the script only exports from Bear to Markdown; it skips the import step.")
 parser.add_argument("--excludeTag", action="append", default=[], help="Don't export notes with this tag. Can be used multiple times.")
+parser.add_argument("--noImage", action="append", default=[], help="Don't export image with this tag. Can be used multiple times.")
+parser.add_argument("--allowTag", action="append", default=[], help="Don't export image with this tag. Can be used multiple times.")
 
 parsed_args = vars(parser.parse_args())
 
 
 set_logging_on = True
 
-# NOTE! if 'BearNotes' is left blank, all other files in my_sync_service will be deleted!! 
-export_path = parsed_args.get("out")
+# TODO: below variable did not working now. should be change for prevent upload to git hub
 no_export_tags = parsed_args.get("excludeTag")  # If a tag in note matches one in this list, it will not be exported.
+no_image_tags = parsed_args.get("noImage")  # If a tag in note matches one in this list, it will not has image contents.
+allowed_tags = parsed_args.get("allowedTag")  # If a tag in note matches one in this list, it will exported the others did not exported.
+
+path = os.path.dirname(os.path.abspath(__file__))
+with open(path + '/config/config.json', 'r') as f:
+    config_data = json.load(f)
+
+for tag in config_data['secretTags']:
+    no_export_tags.append(tag)
+for tag in config_data['noIamgeTags']:
+    no_image_tags.append(tag)
+for tag in config_data['allowTags']:
+    allowed_tags.append(tag)
+
+allowed_export_files = []
+secret_file_names = []
+no_image_files = []
+wrotten_file_names = []
 
 # NOTE! "export_path" is used for sync-back to Bear, so don't change this variable name!
 multi_export = [(export_path, True)]  # only one folder output here. 
@@ -143,32 +164,67 @@ gettag_txt = os.path.join(HOME, 'temp/gettag.txt')
 
 fileLinkRegex = r'\[file\:([0-9A-Z-/]+)\/(.+\.[\w]{3,20})\]'
 imageLinkRegex = r'\[image\:([-_+~/\w\d\s]+)\/(.+\.[\w]{3,20})\]$'
-# markRegex = r'(.*)\:\:([^\s]+.*[^\s]+)+\:\:(.*)'
 markRegex = r'(.*)\:\:([^\s]+.*[^\s]+)\:\:(.*)'
+tagRegex1 = r'(?<!\S)\#([.\w\/\-]+)[ \n]?(?!([\/ \w]+\w[#]))'
+tagRegex2 = r'(?<![\S])\#([^ \d][.\w\/ ]+?)\#([ \n]|$)'
+
 
 def main():
     init_gettag_script()
-    if not parsed_args.get("skipImport"):
+    initialize_working_data()
+    if not parsed_args.get("skipImport"): # default False. So always  this function will operate.
         sync_md_updates()
-    if check_db_modified():
+    if check_db_modified() or allow_always_parsing :
         delete_old_temp_files()
+        export_tags()
         note_count = export_markdown()
-        write_time_stamp()
-        rsync_files_from_temp()
+        write_time_stamp() #TODO: is this function meaningful?
+        # rsync_files_from_temp() #TODO: is this function meaningful?
         if export_image_repository and not export_as_textbundles: #t/f가 기본이라 항시 실행된다.
             copy_bear_images()
-            rename_copied_file()
-        # notify('Export completed')
+            # TODO: delete next functino call At Release. It's not used function. I left it because it might be used.
+            # rename_copied_file() 
+        notify('Export completed') #TODO: is this function meaningful?
+        # make_result_data()
+        # remove_secret_document() #TODO: This brach NOW
+        
+        # move secret .md to /secret folder
+        write_working_data()
         write_log(str(note_count) + ' notes exported to: ' + export_path)
-        exit(1)
+        exit(0)
     else:
         print('*** No notes needed exports')
         exit(0)
 
-def rename_copied_file():
-    for (root, dirnames, filenames) in os.walk(export_path): 
-        for f in filenames:
-            os.rename(os.path.join(root, f), os.path.join(root, f.replace(' ', '_')))
+# def rename_copied_file():
+#     for (root, dirnames, filenames) in os.walk(export_path): 
+#         for f in filenames:
+#             os.rename(os.path.join(root, f), os.path.join(root, f.replace(' ', '_')))
+
+def write_working_data():
+    file_path = "./config/data.json"
+    json_data = {
+        "secret_file_names":secret_file_names,
+        "allowed_file_paths":allowed_export_files,
+        "no_image_file_paths":no_image_files,
+        "wrotten_file_names":wrotten_file_names
+    }
+    with open(file_path, "w") as outfile:
+        json.dump(json_data, outfile)
+        logger("data.json is saved")
+
+def initialize_working_data():
+    file_path = "./config/data.json"
+    json_data = {
+        "secret_file_paths":[],
+        "allowed_file_paths":[],
+        "no_image_file_paths":[],
+        "wrotten_file_names":[]
+    }
+    with open(file_path, 'w') as outfile:
+        json.dump(json_data, outfile)
+        logger("data.json is initialized")
+
 
 def write_log(message):
     if set_logging_on == True:
@@ -189,78 +245,87 @@ def check_db_modified():
     #return db_ts > last_export_ts
     return True
 
-#TODO: Add execute code here for target feature.
+def export_tags():
+    with sqlite3.connect(bear_db) as conn:
+        conn.row_factory = sqlite3.Row
+        query = "SELECT * FROM `ZSFNOTE` WHERE `ZTRASHED` LIKE '0' AND `ZARCHIVED` LIKE '0'"
+        documents = conn.execute(query)
+
+    for document in documents:
+        if document['ZTITLE'].find("test") == -1:
+            if (allow_only_test is True):
+                continue            
+        title = document['ZTITLE']
+        filename = clean_title(title)
+        md_text = document['ZTEXT'].rstrip()
+        tag_parser(filename, md_text)
+
+# A large function that retrieves documents, formats them, and saves them.
 def export_markdown():
     with sqlite3.connect(bear_db) as conn:
         conn.row_factory = sqlite3.Row
         query = "SELECT * FROM `ZSFNOTE` WHERE `ZTRASHED` LIKE '0' AND `ZARCHIVED` LIKE '0'"
         documents = conn.execute(query)
-    note_count = 0
 
+    note_count = 0
     for document in documents:
+        # Make sure that only the test document works.
+        if (document['ZTITLE'].find("test") == -1) and (allow_only_test is True): 
+            continue        
+
+        # Variable for handling block of code(```). The conversion function does not work when it is in the True state.
         global codeblock_flager
         codeblock_flager = False
-        #TODO: Below code is for temp test code
-        if document['ZTITLE'].find("test") == -1:
-            if (allow_only_test is True):
-                continue
-        print(document['ZTITLE'] + "<><> 작업시작")
-        #test block end------------------------
+
         title = document['ZTITLE']
         md_text = document['ZTEXT'].rstrip()
         creation_date = document['ZCREATIONDATE']
         modified = document['ZMODIFICATIONDATE']
-        uuid = document['ZUNIQUEIDENTIFIER']
         filename = clean_title(title)
+        file_path = os.path.join(temp_path, filename)
+        splited_sentences = md_text.split("\n")
+        joined_Sentences = ""
+        splitChar= "\n\n"
+        logger(document['ZTITLE'] + " document is processing 📀 This doc is created", creation_date)
+        
+        for (sentence) in splited_sentences:
+            if sentence is None:
+                continue
 
-        file_list = []
-        if make_tag_folders:
-            file_list = sub_path_from_tag(temp_path, filename, md_text)
-        else:
-            file_list.append(os.path.join(temp_path, filename))        
-        if file_list != []:
-            print(title, " > DOC CONVERTING START!!!")
-            splited_sentences = md_text.split("\n")
-            joined_Sentences = ""
-            splitChar= "\n\n"
-            
-            for (sentence) in splited_sentences:
-                if sentence is None:
-                    continue
+            sentence_dict = {
+                "sentence":sentence,
+                "underline_conv_flag":False,
+                "bold_conv_flag":False,
+                "italic_conv_flag":False,
+                "strike_conv_flag":False,
+            }
+            note_count += 1
+            mod_dt = dt_conv(modified)
+            sentence_dict = hide_tags(sentence_dict)
+            sentence_dict = codeblock_tainter(sentence_dict)
+            sentence_dict = checkbox_conv(sentence_dict)
+            sentence_dict = bold_conv(sentence_dict)        # * -> **
+            sentence_dict = separator_conv(sentence_dict)   
+            sentence_dict = underline_conv(sentence_dict)   # _ -> ***
+            sentence_dict = italic_conv(sentence_dict)      # / -> *
+            sentence_dict = strike_conv(sentence_dict)
+            sentence_dict = mark_conv(sentence_dict)
+            sentence_dict = process_image_links(sentence_dict, file_path) #실제로 이미지링크가 파싱되는 함수
+            #TODO: file link
+            if (splited_sentences[-1] == sentence_dict['sentence']):
+                splitChar = ""
+            joined_Sentences += sentence_dict['sentence'] + splitChar
 
-                sentence_dict = {
-                    "sentence":sentence,
-                    "underline_conv_flag":False,
-                    "bold_conv_flag":False,
-                    "italic_conv_flag":False,
-                    "strike_conv_flag":False,
-                }
-                mod_dt = dt_conv(modified)
-                sentence_dict = hide_tags(sentence_dict)
-                sentence_dict = codeblock_tainter(sentence_dict)
-                sentence_dict = checkbox_conv(sentence_dict)
-                sentence_dict = bold_conv(sentence_dict)        # * -> **
-                sentence_dict = separator_conv(sentence_dict)   
-                sentence_dict = underline_conv(sentence_dict)   # _ -> ***
-                sentence_dict = italic_conv(sentence_dict)      # / -> *
-                sentence_dict = strike_conv(sentence_dict)
-                sentence_dict = mark_conv(sentence_dict)
-                for filepath in file_list: # 연결시킬 파일들의 이름이 올라온다.
-                    note_count += 1
-                    if export_as_textbundles: #default value False
-                        if check_image_hybrid(md_text):
-                            make_text_bundle(md_text, filepath, mod_dt)                        
-                        else:
-                            write_file(filepath + '.md', md_text, mod_dt)
-                    elif export_image_repository: #default value True
-                        sentence_dict = process_image_links(sentence_dict, filepath) #실제로 이미지링크가 파싱되는 함수
-                        # sentence = fileLink_conv(sentence)
-                if (splited_sentences[-1] == sentence_dict['sentence']):
-                    splitChar = ""
-                joined_Sentences += sentence_dict['sentence'] + splitChar
-
-            joined_Sentences += '\n\n<!-- {BearID:' + uuid + '} -->\n'
-            write_file(filepath + '.md', joined_Sentences, mod_dt) # 마지막 파일 작성
+        for (index, secret_file_name) in enumerate(secret_file_names):
+            if (filename +".md") == (secret_file_name): # 비밀케이스의 경우
+                secret_file_path = os.path.join(path,"Working/secrets", filename)
+                write_file(secret_file_path + '.md', joined_Sentences, mod_dt)
+                wrotten_file_names.append(filename + '.md')
+                break
+            elif index == (len(secret_file_names) -1) : # 일반적인 경우 마지막까지 탐색하고 일반으로 쓴다.
+                none_secret_file_path = os.path.join(export_path, filename)
+                write_file(none_secret_file_path + '.md', joined_Sentences, mod_dt)
+                wrotten_file_names.append(filename + '.md')
     return note_count
 
 
@@ -303,12 +368,53 @@ def make_text_bundle(md_text, filepath, mod_dt):
     write_file(bundle_path + '/info.json', info, mod_dt)
     os.utime(bundle_path, (-1, mod_dt))
 
+# Feat: Analyze file and extract tag information. After determining the tag, end process
+def tag_parser(filename, md_text):
+    # Files copied to all tag-folders found in note
+    tags = []
+    for matches in re.findall(tagRegex1, md_text):
+        tag = matches[0]
+        tags.append(tag)
+    for matches2 in re.findall(tagRegex2, md_text):
+        tag2 = matches2[0]
+        tags.append(tag2)
+    # if len(tags) == 0:
+        # No tags found, copy to root level only
+    
+    # tags = every tag in file
+    for tag in tags:
+        if tag == '/':
+            continue
+        if allowed_tags: 
+            # EXPORT가 되지 않으면 계속 순회하기 위해 있는 플래그
+            export = False
+            for export_tag in only_export_these_tags:
+                if tag.lower().startswith(export_tag.lower()):
+                    path = os.path.join(export_path, filename)
+                    allowed_export_files.append(path)
+                    wrotten_file_names.append(filename)
+                    export = True
+                    return
+            if not export:
+                continue 
+        # 'no_export_tags' is global var that from config.json
+        for no_tag in no_export_tags:
+            if tag.lower() == no_tag.lower():
+                secret_file_names.append(filename+".md")
+                return
+    for tag in tags:
+        for no_image_tag in no_image_tags:
+            if tag.lower() == no_image_tag.lower():
+                no_image_file_path = os.path.join(export_path, filename)
+                no_image_files.append(no_image_file_path + '.md')
+                return 
 
 def sub_path_from_tag(temp_path, filename, md_text):
     # Get tags in note:
     pattern1 = r'(?<!\S)\#([.\w\/\-]+)[ \n]?(?!([\/ \w]+\w[#]))'
     pattern2 = r'(?<![\S])\#([^ \d][.\w\/ ]+?)\#([ \n]|$)'
-    if multi_tag_folders: #default False
+    # @multi_tag_folders=False
+    if multi_tag_folders: 
         # Files copied to all tag-folders found in note
         tags = []
         for matches in re.findall(pattern1, md_text):
@@ -371,10 +477,6 @@ def process_image_links(sentence_dict, filepath): #this file path is md file nam
     root = filepath.replace(temp_path, '')
     level = len(root.split('/')) - 2
     parent = '../' * level
-    # filenameIndex = filepath.rfind('/') + 1
-    # print(filepath, "show me")
-    # filename=filepath[filenameIndex:].replace(" ","_")
-    #regex잡아서 파일이름부분을 잡고, replace 함수로 넘겨서 전부 _으로 바꾸는 로직을 해줘야함.
     result_sentence = re.sub(r'(\[image:[A-Z0-9-]+?\/)(.*)(\..{2,20}\])', image_replacer, sentence_dict['sentence'])
     result_sentence = re.sub(r'\[image:(.+?\/.*\..{2,20})\]', r'![](' + parent + r'/BearImages/\1)', result_sentence)
     if( result_sentence != sentence_dict['sentence']):
@@ -605,6 +707,7 @@ def clean_title(title):
 def write_file(filename, file_content, modified):
     with open(filename, "w", encoding='utf-8') as f:
         f.write(file_content)
+        logger("[INFO] ",filename, " has been recorded successfully.")
     if modified > 0:
         os.utime(filename, (-1, modified))
 
@@ -634,7 +737,6 @@ def dt_conv(dtnum):
 def date_time_conv(dtnum):
     newnum = dt_conv(dtnum) 
     dtdate = datetime.datetime.fromtimestamp(newnum)
-    #print(newnum, dtdate)
     return dtdate.strftime(' - %Y-%m-%d_%H%M')
 
 
@@ -957,6 +1059,17 @@ def notify(message):
 
 def logger(*args):
     if (debug_mode_level_middle==True):
+        string = ""
+        for arg in args:
+            string += arg
+        print(string)
+
+    if (debug_mode==True):
+        for arg in args:
+            print("TYPE: ",type(arg),"VALUE:", arg, sys._getframe(2).f_code.co_name)
+
+def logger2(*args):
+    if (debug_mode_level_middle==False):
         string = ""
         for arg in args:
             string += arg
