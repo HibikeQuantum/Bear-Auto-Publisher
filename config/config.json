@@ -1,0 +1,11 @@
+{
+  "secretTags": ["secret","secret2"],
+  "noIamgeTags": ["copyright","fastcampus"],
+  "allowTags": [],
+  "githubPath": "https://github.com/HibikeQuantum/PlayGround",
+  "gitPath":"/Users/kth/PlayGround/Bear",
+  "allowPush": true,
+  "allowOpenDiffAtGithub": true,
+  "allowOpenSecretDiff": true,
+  "automaticApprove": true
+}
