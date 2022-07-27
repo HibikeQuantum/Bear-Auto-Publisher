@@ -1,101 +1,85 @@
-## Markdown export and sync of Bear notes
+# Bear-Auto-Publisher
+Markdown export from Bear sqlite database and publishing at github repository
 
+## Component
 ***bear_export_sync.py***   
-*Version 1.4, 2020-01-11*
+**Version 0.1, 2022-07-26**
 
-Python script for export and roundtrip sync of Bear's notes to OneDrive, Dropbox, etc. and edit online with [StackEdit](https://stackedit.io/app), or use a markdown editor like *Typora* on Windows or a suitable app on Android. Remote edits and new notes get synced back into Bear with this script.
+Python script for export and change markdown format for github markdown.
 
-**See also: [Bear Markdown and textbundle import – with tags from file and folder](https://github.com/rovest/Bear-Markdown-Export/blob/master/Bear%20Import.md)**
+***AutoPublish.sh***
+**Version 0.1, 2022-07-26**
+Bash Script. Its endpoint of 'bear_export_sync.py'. This script read config and data from 'config' directory. and excecute python scirpt. and commit in your .git workspace and push automatically.
 
-Set up seamless syncing with Ulysses’ external folders on Mac, with images included!  
-Write and add photos in Bear, then reorder, glue, and publish, export, or print with styles in Ulysses—  
-bears and butterflies are best friends ;)  
-(PS. The manual order you set for notes in Ulysses' external folder, is maintained during syncs, unless title is changed.) 
+There is no need to worry about the BEAR document. Only read and various changes to the document are made to the copied work. You can still use the bare app as it is. This program does not have the ability to synchronize once extracted data back to the bear. Don't worry.
 
-Suitable for use with https://github.com/andymatuschak/note-link-janitor.
+## install
+1. git clone https://github.com/HibikeQuantum/Bear-Auto-Publisher.git
+2. insert your environment data at `/config/config.json`
+3. Remind, your export destination (`gitPath`) should be managed by `.git` (this program use git command) if u want more detail look this doc (https://github.com/git-guides/git-init)
+4. Remind, your shell has permission to git repository 'master' and This program did not support interative case of git. (like input password, email.. )
+5. and just command `sh AutoPublish.sh`
 
-BEAR IN MIND! This is a free to use version, and please improve or modify as needed. But do be careful! both `rsync` and `shutil.rmtree` used here, are powerful commands that can wipe clean a whole folder tree or even your complete HD if paths are set incorrectly! Also, be safe, take a fresh backup of both Bear and your Mac before first run.
+## Config
+Check `/config/config.json` before running `AutoPublish.sh`
+```json
+{
+  "secretTags": ["secret","secret2"],
+  "noIamgeTags": ["copyright","fastcampus"],
+  "allowTags": [],
+  "githubPath": "https://github.com/HibikeQuantum/PlayGround",
+  "gitPath":"/Users/kth/PlayGround/Bear",
+  "allowPush": true,
+  "allowOpenDiffAtGithub": true,
+  "allowOpenSecretDiff": true,
+  "automaticApprove": true
+}
+```
+
+**'AutoPublish.sh' has rm command that working in "BEAR-AUTO-PUBLISHER/Working" directory and "gitPath" directory**
+So never place a another file these path. 
+
+Description of each key(config.json) below
+- `"secretTags": ["secret","secret2"] ` It is tag setting that tracking but not upload your github.
+- `"noIamgeTags": ["copyright","fastcampus"]` It is tag setting that tracking but the documents has these tag will not upload attached image.
+- `"allowTags": []` It is tag setting that Upload only files with the tags you entered. By default, all documents are posted except documents that have a screed tag.
+- `"githubPath": "https://github.com/HibikeQuantum/PlayGround"` Insert your github remote repository that related `gitPath`
+- `"gitPath":"/Users/kth/PlayGround/Bear"` It is intended to operate based on the master branch. We will support more specific movements later.
+- `"allowPush": true` If it is false, it did not upload data your github
+- `"allowOpenDiffAtGithub": true` If it is false, It does not open browser to show file change information by commit.
+- `"allowOpenSecretDiff": true` If it is false, It does not open default texteditor to show file change information by commit. (if you want use other program. https://support.apple.com/en-ke/guide/mac-help/mh35597/mac)
+- `"automaticApprove": true` true If it is false, it asks if you want to upload it or not every time you run the program.
 
 *See also: [Bear Power Pack](https://github.com/rovest/Bear-Power-Pack/blob/master/README.md)*
 
 ## Usage
 
 ```
-python bear_export_sync.py --out ~/Notes/Bear --backup ~/Notes/Backup
+sh -e AutoPublish.sh
 ```
 
 See `--help` for more.
 
 ## Features
 
-* Bear notes exported as plain Markdown or Textbundles with images.
-* Syncs external edits back to Bear with original image links intact. 
-* New external `.md` files or `.textbundles` are added.  
-(Tags created from sub folder name)
-* Export option: Make nested folders from tags.   
-For first tag only, or all tags (duplicates notes)
-* Export option: Include or exclude export of notes with specific tags.
-* Export option: Export as `.textbundles` with images included. 
-* Or as: `.md` with links to common image repository 
-* Export option: Hide tags in HTML comments like: `<!-- #mytag -->` if `hide_tags_in_comment_block = True`
-* **NEW** Hybrid export: `.textbundles` of notes with images, otherwise regular `.md` (Makes it easier to browse and edit on other platforms.)
-* **NEW** Writes log to `bear_export_sync_log.txt` in `BearSyncBackup` folder.
+**Don't be confused.**
+The 'Bear-Auto-Publisher' is completely different program from the original program before forking. 
+It is a program that only cares about document diff checking and uploading document to github and change document format to git-markdown format.
+The other features are not considered. So never try other function in original. The depricated code will be deleted after beta release.
 
-Edit your Bear notes online in browser on [OneDrive.com](https://onedrive.live.com). It has a ok editor for plain text/markdown. Or with [StackEdit](https://stackedit.io/app), an amazing online markdown editor that can sync with *Dropbox* or *Google Drive*
+## Use Tip
+- If necessary, you can register the shell on the Cron tab and see it automatically upload data.
 
-Read and edit your Bear notes on *Windows* or *Android* with any markdown editor of choice. Remote edits or new notes will be synced back into Bear again. *Typora* works great on Windows, and displays images of text bundles as well.
+# For developer or Beginner
+### devMode running
+```bash
+sh AutoPublish.sh --devMode
+```
+App printout each operating command. It Works only for bear notes with '#test' tag.
+If you don't know exactly how the program works, I recommend watching it work and applying every documents.
 
-NOTE! If syncing with Ulysses’ external folders on Mac, remember to edit that folder settings to `.textbundle` and `Inline Links`!
-
-Run script manually or add it to a cron job for automatic syncing (every 5 – 15 minutes, or whatever you prefer).  
-([LaunchD Task Scheduler](https://itunes.apple.com/us/app/launchd-task-scheduler/id620249105?mt=12) Is easy to configure and works very well for this) 
-
-
-### Syncs external edits back into Bear
-Script first checks for external edits in Markdown files or textbundles (previously exported from Bear as described below):
-
-* It replaces text in original note with `bear://x-callback-url/add-text?mode=replace` command   
-(That way keeping original note ID and creation date)  
-If any changes to title, new title will be added just below original title.  
-(`mode=replace` does not replace title)
-* Original note in `sqlite` database and external edit are both backed up as markdown-files to BearSyncBackup folder before import to bear.
-* If a sync conflict, both original and new version will be in Bear (the new one with a sync conflict message and link to original).
-* New notes created online, are just added to Bear  
-(with the `bear://x-callback-url/create` command)
-* If a textbundle gets new images from an external app, it will be opened and imported as a new note in Bear, with message and link to original note.  
-(The `subprocess.call(['open', '-a', '/applications/bear.app', bundle])` command is used for this)
-
-
-### Markdown export to Dropbox, OneDrive, or other:
-Then exports all notes from Bear's database.sqlite as plain markdown files:
-
-* Checks modified timestamp on database.sqlite, so exports only when needed.
-* Sets Bear note's modification date on exported markdown files.
-* Appends Bear note's creation date to filename to avoid “title-filename-collisions”
-* Note IDs are included at bottom of markdown files to match original note on sync back:  
-	{BearID:730A5BD2-0245-4EF7-BE16-A5217468DF0E-33519-0000429ADFD9221A}  
-(these ID's are striped off again when synced back into Bear)
-* Uses rsync for copying (from a temp folder), so only changed notes will be synced to Dropbox (or other sync services)
-* rsync also takes care of deleting trashed notes
-* "Hides” tags from being displayed as H1 in other markdown apps by adding `period+space` in front of first tag on a line:   
-`. #bear #idea #python`   
-* Or hide tags in HTML comment blocks like: `<!-- #mytag -->` if `hide_tags_in_comment_block = True`   
-(these are striped off again when synced back into Bear)
-* Makes subfolders named with first tag in note if `make_tag_folders = True`
-* Files can now be copied to multiple tag-folders if `multi_tags = True`
-* Export can now be restricted to a list of spesific tags: `limit_export_to_tags = ['bear/github', 'writings']`  
-or leave list empty for all notes: `limit_export_to_tags = []`
-* Can export and link to images in common image repository
-* Or export as textbundles with images included 
-
-
-You have Bear on Mac but also want your notes on your Android phone, on Linux or Windows machine at your office. Or you want them available online in a browser from any desktop computer. Here is a solution (or call it workaround) for now, until Bear comes with an online, Windows, or Android solution ;)
-
-Happy syncing! ;)
-
-### TEST
-if you want function test
-try next command at root
-```python
+### test Method
+```bash
 python test/test_export_sync.py
 ```
+if you want function test, try next command at app root directory
