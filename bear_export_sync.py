@@ -68,8 +68,8 @@ is_mark_conv_mode = True    # if U don't want insert newline at marked sentence.
 is_codeblock_mode = True
 
 debug_mode = False #Print each varaible's value and type. At prod please set false
-debug_mode_level_middle = True #Print each varaible's value and type. At prod please set false
-allow_only_test = True
+debug_mode_level_middle = False #Print each varaible's value and type. At prod please set false
+allow_only_test = False
 
 codeblock_flager = False
 allow_always_parsing = True
@@ -102,9 +102,9 @@ parser.add_argument("--skipImport", action="store_const", const=True, default=Fa
 parser.add_argument("--excludeTag", action="append", default=[], help="Don't export notes with this tag. Can be used multiple times.")
 parser.add_argument("--noImage", action="append", default=[], help="Don't export image with this tag. Can be used multiple times.")
 parser.add_argument("--allowTag", action="append", default=[], help="Don't export image with this tag. Can be used multiple times.")
+parser.add_argument("--devMode", action="store_const", const=True, default=True, help="If devmode, program Print detail operation status. and program only update documents that has #test tag")
 
 parsed_args = vars(parser.parse_args())
-
 
 set_logging_on = True
 
@@ -112,6 +112,7 @@ set_logging_on = True
 no_export_tags = parsed_args.get("excludeTag")  # If a tag in note matches one in this list, it will not be exported.
 no_image_tags = parsed_args.get("noImage")  # If a tag in note matches one in this list, it will not has image contents.
 allowed_tags = parsed_args.get("allowedTag")  # If a tag in note matches one in this list, it will exported the others did not exported.
+is_dev_mode = parsed_args.get("devMode")
 
 path = os.path.dirname(os.path.abspath(__file__))
 with open(path + '/config/config.json', 'r') as f:
@@ -127,7 +128,12 @@ for tag in config_data['allowTags']:
 allowed_export_files = []
 secret_file_names = []
 no_image_files = []
-wrotten_file_names = []
+written_file_names = []
+
+if is_dev_mode is True:
+    debug_mode = True 
+    debug_mode_level_middle = True
+    allow_only_test = True
 
 # NOTE! "export_path" is used for sync-back to Bear, so don't change this variable name!
 multi_export = [(export_path, True)]  # only one folder output here. 
@@ -207,7 +213,7 @@ def write_working_data():
         "secret_file_names":secret_file_names,
         "allowed_file_paths":allowed_export_files,
         "no_image_file_paths":no_image_files,
-        "wrotten_file_names":wrotten_file_names
+        "written_file_names":written_file_names
     }
     with open(file_path, "w") as outfile:
         json.dump(json_data, outfile)
@@ -219,7 +225,7 @@ def initialize_working_data():
         "secret_file_paths":[],
         "allowed_file_paths":[],
         "no_image_file_paths":[],
-        "wrotten_file_names":[]
+        "written_file_names":[]
     }
     with open(file_path, 'w') as outfile:
         json.dump(json_data, outfile)
@@ -286,7 +292,7 @@ def export_markdown():
         splited_sentences = md_text.split("\n")
         joined_Sentences = ""
         splitChar= "\n\n"
-        logger(document['ZTITLE'] + " document is processing 📀 This doc is created", creation_date)
+        logger(document['ZTITLE'] + " document is processing 📀 This doc is created")
         
         for (sentence) in splited_sentences:
             if sentence is None:
@@ -320,12 +326,11 @@ def export_markdown():
             if (filename +".md") == (secret_file_name): # 비밀케이스의 경우
                 secret_file_path = os.path.join(path,"Working/secrets", filename)
                 write_file(secret_file_path + '.md', joined_Sentences, mod_dt)
-                wrotten_file_names.append(filename + '.md')
                 break
             elif index == (len(secret_file_names) -1) : # 일반적인 경우 마지막까지 탐색하고 일반으로 쓴다.
                 none_secret_file_path = os.path.join(export_path, filename)
                 write_file(none_secret_file_path + '.md', joined_Sentences, mod_dt)
-                wrotten_file_names.append(filename + '.md')
+                written_file_names.append(filename + '.md')
     return note_count
 
 
@@ -392,7 +397,7 @@ def tag_parser(filename, md_text):
                 if tag.lower().startswith(export_tag.lower()):
                     path = os.path.join(export_path, filename)
                     allowed_export_files.append(path)
-                    wrotten_file_names.append(filename)
+                    written_file_names.append(filename)
                     export = True
                     return
             if not export:

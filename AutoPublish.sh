@@ -86,13 +86,13 @@ fi
 #serilalize data.json
 secret_file_names=`jq -c .secret_file_names config/data.json | jq -c '.[]'`
 eval "secret_path_array=($secret_file_names)"
-wrotten_file_names=`jq -r .wrotten_file_names config/data.json`
+ ewritten_file_names=`jq -r .written_file_names config/data.json`
 
-if [ -z "$wrotten_file_names" ] && [ -z "$secret_file_names" ]; then
+if [ -z "$written_file_names" ] && [ -z "$secret_file_names" ]; then
     echo "there is nothing todo in this progmram. exit!"
     exit 0
 else
-    echo ${wrotten_file_names} "👉 These notes are will be uploaded to your git hub. Please check it. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
+    echo ${written_file_names} "👉 These notes are will be uploaded to your git hub. Please check it. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
     if [ ${automaticApprove} == "true" ]; then
         echo "Automatically approve"
     else 
@@ -152,7 +152,9 @@ else
     echo "there is no secret tags in documents"
 fi
 
-mv -f ${secretDiffPath} ${WORKING_PATH}/Statiscal_data/ && "data is moved to Statiscal DIR" || "failed to move"
+mv -f ${secretDiffPath} ${WORKING_PATH}/Statiscal_data/ && echo "data is moved to Statiscal DIR" || "failed to move"
+secretDiffPath="${WORKING_PATH}/Statiscal_data/secret_${timestamp}.diff"
+
 cp -r ${WORKING_PATH}/*.md ${EXPORT_OUTPUT_PATH}/ && echo "complete - copy working result to export DIR (part 1) " || echo "fail to copy phase 1"
 cp -r ${WORKING_PATH}/BearImages/ ${EXPORT_OUTPUT_PATH}/BearImages && echo "complete - copy working result to export DIR (part 2) "|| echo "fail to copy phase 2"
 
@@ -197,7 +199,7 @@ else
 fi
 
 if [ "${allowOpenSecretDiff}" == "true" ]; then    
-    open ${WORKING_PATH}/secret_${timestamp}.diff
+    open ${secretDiffPath}
     echo "Every process is clear. Program will be terminated."
     exit 0
 else
