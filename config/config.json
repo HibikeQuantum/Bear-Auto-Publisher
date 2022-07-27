@@ -1,5 +1,5 @@
 {
-  "secretTags": ["secret","secret2"],
+  "secretTags": ["secret","temporary", "private"],
   "noIamgeTags": ["copyright","fastcampus"],
   "allowTags": [],
   "githubPath": "https://github.com/HibikeQuantum/PlayGround",
