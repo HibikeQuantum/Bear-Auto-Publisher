@@ -1,14 +1,1 @@
-{
-    "secret_file_names": [
-        "test Level2 temporary.md",
-        "test copyright secret.md"
-    ],
-    "allowed_file_paths": [],
-    "no_image_file_paths": [
-        "/Users/kth/Code/Bear-Auto-Publisher/Working/test fastcampus.md"
-    ],
-    "written_file_names": [
-        "test Vanilla.md",
-        "test fastcampus.md"
-    ]
-}
+{"secret_file_names": ["test Level2 temporary.md", "test copyright secret.md"], "allowed_file_paths": [], "no_image_file_paths": [], "written_file_names": ["test Vanilla.md"]}
