@@ -3,7 +3,7 @@
   "noIamgeTags": ["copyright","fastcampus"],
   "allowTags": [],
   "githubPath": "https://github.com/HibikeQuantum/PlayGround",
-  "gitPath":"/Users/kth/PlayGround/Bear",
+  "gitPath":"/Users/kth/Code/PlayGround/Bear",
   "allowPush": true,
   "allowOpenDiffAtGithub": true,
   "allowOpenSecretDiff": true,
