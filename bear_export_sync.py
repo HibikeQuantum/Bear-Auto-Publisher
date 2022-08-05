@@ -56,14 +56,14 @@ export_image_repository = True  # Export all notes as md but link images to
                                  # Only used if `export_as_textbundles = False`
 
 # if U don't want convert each style, change value to False
-is_bold_conv_mode = True 
-is_sepa_conv_mode = True    # if U don't want insert newline before sparator at github. Change value to False.
-is_imageLink_conv_mode = True
+is_bold_conv_mode = False 
+is_sepa_conv_mode = False    # if U don't want insert newline before sparator at github. Change value to False.
+is_imageLink_conv_mode = False
 is_fileLink_conv_mode = False
-is_italic_conv_mode = True
+is_italic_conv_mode = False
 is_underline_conv_mode = True
-is_checkbox_conv_mode = True
-is_strike_conv_mode = True
+is_checkbox_conv_mode = False
+is_strike_conv_mode = False
 is_mark_conv_mode = True    # if U don't want insert newline at marked sentence. Change value to False
 is_codeblock_mode = True
 
@@ -102,7 +102,7 @@ parser.add_argument("--skipImport", action="store_const", const=True, default=Fa
 parser.add_argument("--excludeTag", action="append", default=[], help="Don't export notes with this tag. Can be used multiple times.")
 parser.add_argument("--noImage", action="append", default=[], help="Don't export image with this tag. Can be used multiple times.")
 parser.add_argument("--allowTag", action="append", default=[], help="Don't export image with this tag. Can be used multiple times.")
-parser.add_argument("--devMode", action="store_const", const=True, default=True, help="If devmode, program Print detail operation status. and program only update documents that has #test tag")
+parser.add_argument("--devMode", action="store_const", const=True, default=False, help="If devmode, program Print detail operation status. and program only update documents that has #test tag")
 
 parsed_args = vars(parser.parse_args())
 
@@ -186,8 +186,8 @@ def main():
         note_count = export_markdown()
         write_time_stamp() #TODO: is this function meaningful?
         # rsync_files_from_temp() #TODO: is this function meaningful?
-        if export_image_repository and not export_as_textbundles: #t/f가 기본이라 항시 실행된다.
-            copy_bear_images()
+        # if export_image_repository and not export_as_textbundles: #t/f가 기본이라 항시 실행된다.
+        #     copy_bear_images()
             # TODO: delete next functino call At Release. It's not used function. I left it because it might be used.
             # rename_copied_file() 
         notify('Export completed') #TODO: is this function meaningful?
@@ -276,7 +276,8 @@ def export_markdown():
     note_count = 0
     for document in documents:
         # Make sure that only the test document works.
-        if (document['ZTITLE'].find("test") == -1) and (allow_only_test is True): 
+        if (document['ZTITLE'].find("test") == -1) and (allow_only_test is True):
+            print ( document['ZTITLE'], allow_only_test is True, "fd this DOC will be passed")
             continue        
 
         # Variable for handling block of code(```). The conversion function does not work when it is in the True state.
@@ -293,8 +294,8 @@ def export_markdown():
         joined_Sentences = ""
         splitChar= "\n\n"
         logger(document['ZTITLE'] + " document is processing 📀 This doc is created")
-        
-        for (sentence) in splited_sentences:
+        make_iamge(md_text)     
+        for (index, sentence) in enumerate(splited_sentences):
             if sentence is None:
                 continue
 
@@ -318,7 +319,7 @@ def export_markdown():
             sentence_dict = mark_conv(sentence_dict)
             sentence_dict = process_image_links(sentence_dict, file_path) #실제로 이미지링크가 파싱되는 함수
             #TODO: file link
-            if (splited_sentences[-1] == sentence_dict['sentence']):
+            if index == len(splited_sentences)-1 :
                 splitChar = ""
             joined_Sentences += sentence_dict['sentence'] + splitChar
 
@@ -334,7 +335,7 @@ def export_markdown():
     return note_count
 
 
-def check_image_hybrid(md_text):
+def check_image_hybrid(md_text): #not used
     if export_as_hybrids:
         if re.search(r'\[image:(.+?)\]', md_text):
             return True
@@ -344,34 +345,17 @@ def check_image_hybrid(md_text):
         return True
 
 
-def make_text_bundle(md_text, filepath, mod_dt):
-    '''
-    Exports as Textbundles with images included 
-    '''
-    bundle_path = filepath + '.textbundle'
-    assets_path = os.path.join(bundle_path, 'assets')    
-    if not os.path.exists(bundle_path):
-        os.makedirs(bundle_path)
-        os.makedirs(assets_path)
-        
-    info = '''{
-    "transient" : true,
-    "type" : "net.daringfireball.markdown",
-    "creatorIdentifier" : "net.shinyfrog.bear",
-    "version" : 2
-    }'''
+def make_iamge(md_text): # 더 이상 호출 되지 않는다.
     matches = re.findall(r'\[image:(.+?)\]', md_text)
-    for match in matches:
-        image_name = match
-        new_name = image_name.replace('/', '_') #여기 언더바를 넣는 로직이 있어서 내가 만든 함수랑 겹쳐서 꼬이는구나
-        source = os.path.join(bear_image_path, image_name)
-        target = os.path.join(assets_path, new_name)
-        shutil.copy2(source, target)
-
-    md_text = re.sub(r'\[image:(.+?)/(.+?)\]', r'![](assets/\1_\2)', md_text)
-    write_file(bundle_path + '/text.md', md_text, mod_dt)
-    write_file(bundle_path + '/info.json', info, mod_dt)
-    os.utime(bundle_path, (-1, mod_dt))
+    if matches is not None:
+        for match in matches:
+            image_name = match
+            new_name = image_name.replace('/', '_') #여기 언더바를 넣는 로직이 있어서 내가 만든 함수랑 겹쳐서 꼬이는구나
+            new_name2 = new_name.replace(' ', '_')
+            source = os.path.join(bear_image_path, image_name)
+            target = os.path.join(assets_path, new_name2)
+            print(new_name, "기존뉴네임", new_name2, "파이널네임")
+            shutil.copy2(source, target)
 
 # Feat: Analyze file and extract tag information. After determining the tag, end process
 def tag_parser(filename, md_text):
@@ -479,11 +463,11 @@ def process_image_links(sentence_dict, filepath): #this file path is md file nam
     '''
     Bear image links converted to MD links
     '''
-    root = filepath.replace(temp_path, '')
-    level = len(root.split('/')) - 2
-    parent = '../' * level
-    result_sentence = re.sub(r'(\[image:[A-Z0-9-]+?\/)(.*)(\..{2,20}\])', image_replacer, sentence_dict['sentence'])
-    result_sentence = re.sub(r'\[image:(.+?\/.*\..{2,20})\]', r'![](' + parent + r'/BearImages/\1)', result_sentence)
+    # root = filepath.replace(temp_path, '')
+    # level = len(root.split('/')) - 2
+    # parent = '../' * level
+    result_sentence = re.sub(r'\[image:(.+?\/.*)\]', image_replacer, sentence_dict['sentence'])
+    # TODO: copyright tag operation + operate by iamge name
     if( result_sentence != sentence_dict['sentence']):
         logger(sentence_dict['sentence'], "👉 Changed 👉", result_sentence)
         sentence_dict['sentence'] = result_sentence
@@ -492,7 +476,7 @@ def process_image_links(sentence_dict, filepath): #this file path is md file nam
 
 
 def image_replacer(m):
-    return m.group(1) + m.group(2).replace(" ","_") + m.group(3)
+    return "![](/BearImages/" + m.group(1).replace(" ","_").replace("/","_") + ")"
 
 def restore_image_links(md_text):
     '''
@@ -646,13 +630,17 @@ def mark_conv(sentence_dict):
 def mark_replacer(m):
     prefix = ""
     suffix = ""
-    if m.group(1) != "":
+    if m.group(1) == "":
+        prefix = m.group(1)
+    else:
         prefix = m.group(1) + "\n"
     if m.group(2) == "":
         print("m.group(2) is empty, unexpected situation")
     if m.group(3) != "":
         suffix = m.group(3) + "\n"
     return prefix + "```diff\n+ " + m.group(2) + "\n```\n" + suffix
+
+#타입 0은 전체문장 1은 공백 또는 메인 문장
 
 def fileLink_conv(sentence_dict):
     # replace md

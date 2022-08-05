@@ -6,6 +6,10 @@ if [ "${1}" == "deubug" ]; then
     set -o xtrace
 fi
 
+# Catch terminate cmd from Sub Shell
+trap "exit 1" 10
+PROC="$$"
+
 CWD=`pwd`
 [ CWD == "/" ] && echo "[ERROR] It is not recommanded running these this program on filesystem root." && exit 1
 
@@ -30,6 +34,9 @@ allowOpenDiffAtGithub=`jq -r .allowOpenDiffAtGithub config/config.json`
 #config.json
 automaticApprove=`jq -r .automaticApprove config/config.json`
 [ -z "$automaticApprove" ] && echo "App could not find automaticApprove. Config correct information at ./config/config.json'" && exit 1
+
+targetBranch=`jq -r .targetBranch config/config.json`
+[ -z "$automaticApprove" ] && echo "App could not find targetBranch. Config correct information at ./config/config.json'" && exit 1
 
 timeNow=`date`
 timeNowSimple=`date "+%Y%m%d"`
@@ -71,6 +78,33 @@ else
     echo "App can't find your github page. It seems github URL is not valid or Your computer may not connected to the Internet"
     exit 1
 fi
+
+# Check output dest .git Status and Set working Branch
+(
+    cd ${EXPORT_OUTPUT_PATH};
+
+    # Change CW git brach
+    currentBranch=$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
+    if [ "${currentBranch}" == ${targetBranch} ]; then
+        echo "nothing"
+    else
+        if [ `git branch --list $targetBranch` ]; then
+            echo "Branch name "${targetBranch}" already exists. Change working branch to ${targetBranch}"
+            git checkout "${targetBranch}"
+        else
+            echo "Branch name "${targetBranch}" is not exists. App will Create the branch and change working branch yuor book"
+            git checkout -b "${targetBranch}"
+        fi
+    fi    
+
+    # Check git status
+    if [[ `git status --porcelain` ]]; then 
+        echo "It is tidy to Add new commit. App will process to publish your data to github" 
+    else 
+        echo "It is not tity status to add new commit. App process is end. 😓"
+        kill -10 $PROC
+    fi
+)
 
 echo "-----------------------------------------py-------------------------------------------"
 python ${CWD}/bear_export_sync.py
@@ -168,13 +202,13 @@ fi
 
 if [ "${allowPush}" == "true" ]; then
     (
-    git gc --aggressive --prune=now
     set -e
     cd ${EXPORT_OUTPUT_PATH};
+    git gc --aggressive --prune=now
     git add ${EXPORT_OUTPUT_PATH}/*; 
     git add last_commit_message.txt;
     git commit -m "${commitMessage}";
-    git push -f origin master;
+    git push -f origin "${targetBranch}";
     git log -n 1 --pretty=format:"%H" > "${commitHashPath}";
     set +e
     )
