@@ -46,6 +46,7 @@ responseCode=`curl -o /dev/null --silent --head --write-out '%{http_code}\n' ${G
 secretDiffPath="${WORKING_PATH}/secret_${timestamp}.diff"
 echo "init" > "${WORKING_PATH}/commit_hash"
 commitHashPath="${WORKING_PATH}/commit_hash"
+# tmpAddStrings="${WORKING_PATH}/filename.tmp"
 
 if [ ! -d "${WORKING_PATH}/secrets/" ]; then
     mkdir "${WORKING_PATH}/secrets" && echo "Complete - ${WORKING_PATH}/secrets DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/secrets DIR" 
@@ -120,23 +121,28 @@ fi
 #serilalize data.json
 secret_file_names=`jq -c .secret_file_names config/data.json | jq -c '.[]'`
 eval "secret_path_array=($secret_file_names)"
- ewritten_file_names=`jq -r .written_file_names config/data.json`
+written_file_names=`jq -r .written_file_names config/data.json`
 
 if [ -z "$written_file_names" ] && [ -z "$secret_file_names" ]; then
     echo "there is nothing todo in this progmram. exit!"
     exit 0
-else
-    echo ${written_file_names} "👉 These notes are will be uploaded to your git hub. Please check it. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
-    if [ ${automaticApprove} == "true" ]; then
-        echo "Automatically approve"
-    else 
-        read -n 1;
-        if [ $REPLY == [yYㅛ]]; then
-            echo "OK"
-        else
-            echo $REPLY "program will be terminated"
-            exit 1
-        fi
+fi
+
+echo ${written_file_names} "👉 These notes are will be uploaded to your git hub. Please check it. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
+
+echo "-----------------------------------------py-------------------------------------------"
+python ${CWD}/document_analyzer.py
+echo "-----------------------------------------py-------------------------------------------"
+
+if [ ${automaticApprove} == "true" ]; then
+    echo "Automatically approve"
+else 
+    read -n 1;
+    if [ $REPLY == [yYㅛ]]; then
+        echo "OK"
+    else
+        echo $REPLY "program will be terminated"
+        exit 1
     fi
 fi
 
@@ -240,3 +246,24 @@ else
     echo "Configration did not allow open text view tool. Check /config/config.json"
     exit 0
 fi
+
+# git diff -U0 | diffLines
+# diffLines() {
+#     local path=
+#     local line=
+#     while read; do
+#         esc=$'\033'
+#         if [[ $REPLY =~ ---\ (a/)?.* ]]; then
+#             continue
+#         elif [[ $REPLY =~ \+\+\+\ (b/)?([^[:blank:]$esc]+).* ]]; then
+#             path=${BASH_REMATCH[2]}
+#         elif [[ $REPLY =~ @@\ -[0-9]+(,[0-9]+)?\ \+([0-9]+)(,[0-9]+)?\ @@.* ]]; then
+#             line=${BASH_REMATCH[2]}
+#         elif [[ $REPLY =~ ^($esc\[[0-9;]*m)*([\ +-]) ]]; then
+#             if [[ ${BASH_REMATCH[2]} == \+ ]]; then
+#                 echo "${REPLY:1}" > 
+#                 ((line++))
+#             fi
+#         fi
+#     done
+# }
