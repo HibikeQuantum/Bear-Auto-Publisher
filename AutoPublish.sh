@@ -1,4 +1,4 @@
-#!/bin/bash -ex 
+#!/bin/bash -ex
 
 #FOR DEBUG
 if [ "${1}" == "deubug" ]; then
@@ -48,15 +48,15 @@ echo "init" > "${WORKING_PATH}/commit_hash"
 commitHashPath="${WORKING_PATH}/commit_hash"
 
 if [ ! -d "${WORKING_PATH}/secrets/" ]; then
-    mkdir "${WORKING_PATH}/secrets" && echo "Complete - ${WORKING_PATH}/secrets DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/secrets DIR" 
+    mkdir "${WORKING_PATH}/secrets" && echo "Complete - ${WORKING_PATH}/secrets DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/secrets DIR"
 fi
 
 if [ ! -d "${WORKING_PATH}/BearImages/" ]; then
-    mkdir "${WORKING_PATH}/BearImages" && echo "Complete - ${WORKING_PATH}/BearImages DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/BearImages DIR" 
+    mkdir "${WORKING_PATH}/BearImages" && echo "Complete - ${WORKING_PATH}/BearImages DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/BearImages DIR"
 fi
 
 if [ ! -d "${WORKING_PATH}/Statiscal_data" ]; then
-    mkdir "${WORKING_PATH}/Statiscal_data" && echo "Complete - ${WORKING_PATH}/Statiscal_data DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/Statiscal_data DIR" 
+    mkdir "${WORKING_PATH}/Statiscal_data" && echo "Complete - ${WORKING_PATH}/Statiscal_data DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/Statiscal_data DIR"
 fi
 
 if [ -d "$EXPORT_OUTPUT_PATH" ]; then
@@ -95,12 +95,12 @@ fi
             echo "Branch name "${targetBranch}" is not exists. App will Create the branch and change working branch yuor book"
             git checkout -b "${targetBranch}"
         fi
-    fi    
+    fi
 
     # Check git status
-    if [[ `git status --porcelain` ]]; then 
-        echo "It is tidy to Add new commit. App will process to publish your data to github" 
-    else 
+    if [[ `git status --porcelain` ]]; then
+        echo "It is tidy to Add new commit. App will process to publish your data to github"
+    else
         echo "It is not tity status to add new commit. App process is end. 😓"
         kill -10 $PROC
     fi
@@ -121,6 +121,7 @@ fi
 secret_file_names=`jq -c .secret_file_names config/data.json | jq -c '.[]'`
 eval "secret_path_array=($secret_file_names)"
  ewritten_file_names=`jq -r .written_file_names config/data.json`
+rm -f ${CWD}/config/data.json
 
 if [ -z "$written_file_names" ] && [ -z "$secret_file_names" ]; then
     echo "there is nothing todo in this progmram. exit!"
@@ -129,7 +130,7 @@ else
     echo ${written_file_names} "👉 These notes are will be uploaded to your git hub. Please check it. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
     if [ ${automaticApprove} == "true" ]; then
         echo "Automatically approve"
-    else 
+    else
         read -n 1;
         if [ $REPLY == [yYㅛ]]; then
             echo "OK"
@@ -144,7 +145,7 @@ if [ "$secret_file_names" == "null" ]; then
     echo "There is no secret tag. Upload every documents is very dangerous. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
     if [ ${automaticApprove} == "true" ]; then
         echo "Automatically approve"
-    else 
+    else
         read -n 1;
         if [ $REPLY == [yYㅛ]]; then
             echo "OK"
@@ -178,11 +179,11 @@ if [ "${secret_path_array}" != "null" ]; then
 
             mv -f "${WORKING_PATH}/secrets/${secret_file_name}" "${WORKING_PATH}/secrets/old_${secret_file_name}"
             echo "${secret_file_name} file name is changed to old_${secret_file_name}"
-        else 
+        else
             echo "${secret_file_name} this is not proper value. TODO! extract pure value in jq"
         fi
     done
-else 
+else
     echo "there is no secret tags in documents"
 fi
 
@@ -205,7 +206,7 @@ if [ "${allowPush}" == "true" ]; then
     set -e
     cd ${EXPORT_OUTPUT_PATH};
     git gc --aggressive --prune=now
-    git add ${EXPORT_OUTPUT_PATH}/*; 
+    git add ${EXPORT_OUTPUT_PATH}/*;
     git add last_commit_message.txt;
     git commit -m "${commitMessage}";
     git push -f origin "${targetBranch}";
@@ -225,14 +226,14 @@ fi
 
 commitHash=`cat $commitHashPath`
 
-if [ "${allowOpenDiffAtGithub}" == "true" ]; then    
+if [ "${allowOpenDiffAtGithub}" == "true" ]; then
     open "${GITHUB_URL}/commit/${commitHash}"
     echo "Github commit tab is opened. Check diffence between old document and current document"
 else
     echo "Configration did not allow open your github repository. Check /config/config.json"
 fi
 
-if [ "${allowOpenSecretDiff}" == "true" ]; then    
+if [ "${allowOpenSecretDiff}" == "true" ]; then
     open ${secretDiffPath}
     echo "Every process is clear. Program will be terminated."
     exit 0
