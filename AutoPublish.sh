@@ -1,4 +1,4 @@
-#!/bin/bash -ex 
+#!/bin/bash -ex
 
 #FOR DEBUG
 if [ "${1}" == "deubug" ]; then
@@ -16,7 +16,7 @@ CWD=`pwd`
 WORKING_PATH="$CWD/Working"
 [ -z "$WORKING_PATH" ] && echo "App could not find Working directory. Please reinstall 'BEAR-AUTO-PUBLISHER'" && exit 1
 
-EXPORT_OUTPUT_PATH=`jq -r .gitPath config/config.json`
+EXPORT_OUTPUT_PATH=`jq -r .exportPath config/config.json`
 [ -z "$EXPORT_OUTPUT_PATH" ] && echo "App could not find 'export destination(.git path) directory. Config correct information at ./config/config.json'" && exit 1
 
 GITHUB_URL=`jq -r .githubPath config/config.json`
@@ -36,7 +36,10 @@ automaticApprove=`jq -r .automaticApprove config/config.json`
 [ -z "$automaticApprove" ] && echo "App could not find automaticApprove. Config correct information at ./config/config.json'" && exit 1
 
 targetBranch=`jq -r .targetBranch config/config.json`
-[ -z "$automaticApprove" ] && echo "App could not find targetBranch. Config correct information at ./config/config.json'" && exit 1
+[ -z "$targetBranch" ] && echo "App could not find targetBranch. Config correct information at ./config/config.json'" && exit 1
+
+executeAnalyzing=`jq -r .executeAnalyzing config/config.json`
+[ -z "$executeAnalyzing" ] && echo "App could not find targetBranch. Config correct information at ./config/config.json'" && exit 1
 
 timeNow=`date`
 timeNowSimple=`date "+%Y%m%d"`
@@ -49,15 +52,15 @@ commitHashPath="${WORKING_PATH}/commit_hash"
 # tmpAddStrings="${WORKING_PATH}/filename.tmp"
 
 if [ ! -d "${WORKING_PATH}/secrets/" ]; then
-    mkdir "${WORKING_PATH}/secrets" && echo "Complete - ${WORKING_PATH}/secrets DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/secrets DIR" 
+    mkdir "${WORKING_PATH}/secrets" && echo "Complete - ${WORKING_PATH}/secrets DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/secrets DIR"
 fi
 
 if [ ! -d "${WORKING_PATH}/BearImages/" ]; then
-    mkdir "${WORKING_PATH}/BearImages" && echo "Complete - ${WORKING_PATH}/BearImages DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/BearImages DIR" 
+    mkdir "${WORKING_PATH}/BearImages" && echo "Complete - ${WORKING_PATH}/BearImages DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/BearImages DIR"
 fi
 
 if [ ! -d "${WORKING_PATH}/Statiscal_data" ]; then
-    mkdir "${WORKING_PATH}/Statiscal_data" && echo "Complete - ${WORKING_PATH}/Statiscal_data DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/Statiscal_data DIR" 
+    mkdir "${WORKING_PATH}/Statiscal_data" && echo "Complete - ${WORKING_PATH}/Statiscal_data DIR was created successfully" || echo "Failed to create ${WORKING_PATH}/Statiscal_data DIR"
 fi
 
 if [ -d "$EXPORT_OUTPUT_PATH" ]; then
@@ -96,19 +99,19 @@ fi
             echo "Branch name "${targetBranch}" is not exists. App will Create the branch and change working branch yuor book"
             git checkout -b "${targetBranch}"
         fi
-    fi    
+    fi
 
     # Check git status
-    if [[ `git status --porcelain` ]]; then 
-        echo "It is tidy to Add new commit. App will process to publish your data to github" 
-    else 
+    if [[ `git status --porcelain` ]]; then
+        echo "It is tidy to Add new commit. App will process to publish your data to github"
+    else
         echo "It is not tity status to add new commit. App process is end. 😓"
         kill -10 $PROC
     fi
 )
 
 echo "-----------------------------------------py-------------------------------------------"
-python ${CWD}/bear_export_sync.py
+python3 ${CWD}/bear_export_sync.py
 echo "-----------------------------------------py-------------------------------------------"
 
 if [ "$?" -eq 0 ]; then
@@ -130,13 +133,9 @@ fi
 
 echo ${written_file_names} "👉 These notes are will be uploaded to your git hub. Please check it. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
 
-echo "-----------------------------------------py-------------------------------------------"
-python ${CWD}/document_analyzer.py
-echo "-----------------------------------------py-------------------------------------------"
-
 if [ ${automaticApprove} == "true" ]; then
     echo "Automatically approve"
-else 
+else
     read -n 1;
     if [ $REPLY == [yYㅛ]]; then
         echo "OK"
@@ -150,7 +149,7 @@ if [ "$secret_file_names" == "null" ]; then
     echo "There is no secret tag. Upload every documents is very dangerous. Are you sure you want to upload below documents to GitHub?' PRESS 'yY'"
     if [ ${automaticApprove} == "true" ]; then
         echo "Automatically approve"
-    else 
+    else
         read -n 1;
         if [ $REPLY == [yYㅛ]]; then
             echo "OK"
@@ -184,11 +183,11 @@ if [ "${secret_path_array}" != "null" ]; then
 
             mv -f "${WORKING_PATH}/secrets/${secret_file_name}" "${WORKING_PATH}/secrets/old_${secret_file_name}"
             echo "${secret_file_name} file name is changed to old_${secret_file_name}"
-        else 
+        else
             echo "${secret_file_name} this is not proper value. TODO! extract pure value in jq"
         fi
     done
-else 
+else
     echo "there is no secret tags in documents"
 fi
 
@@ -211,9 +210,19 @@ if [ "${allowPush}" == "true" ]; then
     set -e
     cd ${EXPORT_OUTPUT_PATH};
     git gc --aggressive --prune=now
-    git add ${EXPORT_OUTPUT_PATH}/*; 
+    git add ${EXPORT_OUTPUT_PATH}/*;
     git add last_commit_message.txt;
-    git commit -m "${commitMessage}";
+    set +e
+    )
+    # python execute
+    if [ "${executeAnalyzing}" == "true" ]; then
+        echo "-----------------------------------------py-------------------------------------------"
+        # python3 ${CWD}/document_analyzer.py
+        echo "-----------------------------------------py-------------------------------------------"
+    fi
+    (
+    set -e
+    cd ${EXPORT_OUTPUT_PATH};
     git push -f origin "${targetBranch}";
     git log -n 1 --pretty=format:"%H" > "${commitHashPath}";
     set +e
@@ -231,14 +240,14 @@ fi
 
 commitHash=`cat $commitHashPath`
 
-if [ "${allowOpenDiffAtGithub}" == "true" ]; then    
+if [ "${allowOpenDiffAtGithub}" == "true" ]; then
     open "${GITHUB_URL}/commit/${commitHash}"
     echo "Github commit tab is opened. Check diffence between old document and current document"
 else
     echo "Configration did not allow open your github repository. Check /config/config.json"
 fi
 
-if [ "${allowOpenSecretDiff}" == "true" ]; then    
+if [ "${allowOpenSecretDiff}" == "true" ]; then
     open ${secretDiffPath}
     echo "Every process is clear. Program will be terminated."
     exit 0
@@ -261,7 +270,7 @@ fi
 #             line=${BASH_REMATCH[2]}
 #         elif [[ $REPLY =~ ^($esc\[[0-9;]*m)*([\ +-]) ]]; then
 #             if [[ ${BASH_REMATCH[2]} == \+ ]]; then
-#                 echo "${REPLY:1}" > 
+#                 echo "${REPLY:1}" >
 #                 ((line++))
 #             fi
 #         fi
