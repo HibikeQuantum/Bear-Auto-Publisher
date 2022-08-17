@@ -210,7 +210,7 @@ if [ "${allowPush}" == "true" ]; then
     set -e
     cd ${EXPORT_OUTPUT_PATH};
     git gc --aggressive --prune=now
-    git add ${EXPORT_OUTPUT_PATH}/*;
+    git add -A;
     git add last_commit_message.txt;
     set +e
     )
@@ -223,6 +223,7 @@ if [ "${allowPush}" == "true" ]; then
     (
     set -e
     cd ${EXPORT_OUTPUT_PATH};
+    git commit -m "${commitMessage}";
     git push -f origin "${targetBranch}";
     git log -n 1 --pretty=format:"%H" > "${commitHashPath}";
     set +e

@@ -93,9 +93,9 @@ def returnOnlyGroup(m):
 
 # CONFIG VALUE
 pwd = os.path.dirname(os.path.abspath(__file__))
-configJsonPath = os.path.join(pwd, "/config/config.json")
-dataJsonPath = os.path.join(pwd, "/config/data.json")
-statisticalPath = os.path.join(pwd, "/Working/Statiscal_data/publishData.csv")
+configJsonPath = os.path.join(pwd, "config/config.json")
+dataJsonPath = os.path.join(pwd, "config/data.json")
+statisticalPath = os.path.join(pwd, "Working/Statiscal_data/publishData.csv")
 gitPath = None
 
 # CONSTANT AND INITIALIZE
@@ -135,14 +135,15 @@ if target_diff_index_array:
     rowRecipe = {}
 
     for (index, line) in enumerate(wholeSendtences.split("\n")):
-      subResult = re.match(r'^\+(.*)', returnOnlyGroup, line)
-      if (subResult is not None):
-        exactLine = line.restrip
-      print(subResult,"\n",exactLine)
-      if subResult != exactLine and exactLine[0:2] != "@@":
-        print('subResult: 입력합니다')
-
-        sentence += subResult + "\n"
+      matchedLine = re.match(r'^\+(.*)', line)
+      striptedString = ""
+      if matchedLine is None:
+        print("Nothing to do")
+      else:
+        matchedLine = matchedLine.group(1)
+        striptedString = line.lstrip()
+        if striptedString[0:2] != "@@":
+          sentence += matchedLine + "\n"
 
     rowRecipe['FileName'] = file_path
     rowRecipe['Date'] =  datetime.datetime.now()
