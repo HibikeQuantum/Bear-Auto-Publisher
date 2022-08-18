@@ -993,7 +993,7 @@ def backup_bear_note(uuid):
         created = row['ZCREATIONDATE']
         cre_dt = dt_conv(created)
         md_text = insert_link_top_note(md_text, 'Link to updated note: ', uuid)
-        dtdate = datetime.datetime.fromtimestamp(cre_dt)
+        dtdate = datetime.datetime.fromtimestamp(cre_dt)    
         filename = clean_title(title) + dtdate.strftime(' - %Y-%m-%d_%H%M')
         if not os.path.exists(sync_backup):
             os.makedirs(sync_backup)
