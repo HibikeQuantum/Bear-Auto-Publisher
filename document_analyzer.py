@@ -59,9 +59,6 @@ NOT USED NOW
 #     print(top5,"fd3")
 #     return top5
 
-def getContents(m):
-  return m.group(1)
-
 def getMostUsedWords(text):
     okt = Kkma()
     noun = okt.nouns(text)
@@ -81,15 +78,7 @@ def getFileTextLen(path):
 def analyzeWholeText(path):
   with open(path,'r',encoding='UTF8') as file:
     text = file.read()
-    return
-
-def analyzeDiff(text):
-  return getMostUsedWords(text)
-
-def returnOnlyGroup(m):
-  return m.group(1)
-
-
+    return getMostUsedWords(text)
 
 # CONFIG VALUE
 pwd = os.path.dirname(os.path.abspath(__file__))
@@ -115,49 +104,66 @@ with open(dataJsonPath, "r", encoding='utf-8') as dataJsonFile:
   writtenFileNameList = json.load(dataJsonFile)['written_file_names']
 
 # Main Logic is Started here.
+# TODO: Make Main function
 repository = Repo(gitPath, search_parent_directories=True)
 target_diff_index_array = []
 Hcommit = repository.head.commit
-diff_index_list = Hcommit.diff('HEAD~1', create_patch=True, unified=0)
+DiffIndex = Hcommit.diff('HEAD~1', create_patch=True, unified=0)
 
-for diff_index in diff_index_list.iter_change_type('M'):
-    target_diff_index_array.append(diff_index)
-for diff_index in diff_index_list.iter_change_type('A'):
-    target_diff_index_array.append(diff_index)
-
+for diff_index_M in DiffIndex.iter_change_type('M'):
+  target_diff_index_array.append(diff_index_M)
+for diff_index_A in DiffIndex.iter_change_type('A'):
+  print("_A:", diff_index_A)
+  target_diff_index_array.append(diff_index_A)
 
 
 if target_diff_index_array:
+  # iterate each modified file
   for diff_index in target_diff_index_array:
     file_path = os.path.join(gitPath,diff_index.b_path)
     wholeSendtences = diff_index.diff.decode('utf-8')
+
+    # initialize collecting data
     sentence = ""
     rowRecipe = {}
-
+    newCharacterNumbers = 0
+    previouChar = ""
+    # iterate git-diff-lines
     for (index, line) in enumerate(wholeSendtences.split("\n")):
+      # ignore option line.
+      if line[-2:] == "@@":
+        headInfoArr = line.split(" ")
+        newCharacterNumbers = headInfoArr[2][1:]
+        index = newCharacterNumbers.find(",")
+        if index != -1:
+          newCharacterNumbers = newCharacterNumbers[0:index]
+        continue
+      
       matchedLine = re.match(r'^\+(.*)', line)
       striptedString = ""
-      if matchedLine is None:
-        print("Nothing to do")
-      else:
+      if previouChar == "-" and line[0:1] == "-":
+        matchedLine = re.match(r'^\-(.*)', line)
+        
+      if matchedLine is not None:
         matchedLine = matchedLine.group(1)
         striptedString = line.lstrip()
-        if striptedString[0:2] != "@@":
-          sentence += matchedLine + "\n"
+        sentence += matchedLine
+      previouChar = line[0:1]
 
     rowRecipe['FileName'] = file_path
     rowRecipe['Date'] =  datetime.datetime.now()
     rowRecipe['TotalCharacters'] = getFileTextLen(file_path)
     rowRecipe['TotalKeyward'] = analyzeWholeText(file_path)
-
-    """ TODO: english word is ignored. in these steps. enhance it! """
-    # rowRecipe['TotalKeyward'] = analyzeEngDoc(file_path)
-
-    rowRecipe['ChangedCharacters'] = len(sentence)
+    rowRecipe['ChangedCharacters'] = newCharacterNumbers
     rowRecipe['ChangedKeyward'] = getMostUsedWords(sentence)
-    csvQueue.append(rowRecipe)
-    # print("END___: ", data)
 
+    """
+    TODO: english word is ignored. in these steps. It could be enhanced.
+    # rowRecipe['TotalKeyward'] = analyzeEngDoc(file_path)
+    """
+    csvQueue.append(rowRecipe)
+
+# Write file
 with open(statisticalPath, "a", encoding = 'utf-8') as dataCsv:
   wr = csv.writer(dataCsv)
   for dict in csvQueue:
