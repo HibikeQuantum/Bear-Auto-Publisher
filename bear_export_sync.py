@@ -345,7 +345,7 @@ def check_image_hybrid(md_text): #not used
         return True
 
 
-def make_iamge(md_text): # 더 이상 호출 되지 않는다.
+def make_iamge(md_text):
     matches = re.findall(r'\[image:(.+?)\]', md_text)
     if matches is not None:
         for match in matches:
@@ -354,7 +354,6 @@ def make_iamge(md_text): # 더 이상 호출 되지 않는다.
             new_name2 = new_name.replace(' ', '_')
             source = os.path.join(bear_image_path, image_name)
             target = os.path.join(assets_path, new_name2)
-            print(new_name, "기존뉴네임", new_name2, "파이널네임")
             shutil.copy2(source, target)
 
 # Feat: Analyze file and extract tag information. After determining the tag, end process
