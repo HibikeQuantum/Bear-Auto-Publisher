@@ -22,12 +22,12 @@ NOT USED NOW
 
 """ data structure preview """
 rowRecipe = {
-    "FileName":"",
-    "Date":"",
-    "TotalCharacters": 0,
-    "TotalKeyward": [],
-    "ChangedCharacters": 0,
-    "ChangedKeyward":[],
+  "FileName":"",
+  "Date":"",
+  "TotalCharacters": 0,
+  "TotalKeyward": [],
+  "ChangedCharacters": 0,
+  "ChangedKeyward":[],
 }
 
 """
@@ -60,14 +60,14 @@ NOT USED NOW
 #     return top5
 
 def getMostUsedWords(text):
-    okt = Kkma()
-    noun = okt.nouns(text)
-    count = Counter(noun).most_common(KEYWORD_NUMBERS)
-    keywords = ""
-    for name, count in sorted(count):
-      keywords += name + " "
-    keywords = keywords[0:-1]
-    return keywords
+  okt = Kkma()
+  noun = okt.nouns(text)
+  count = Counter(noun).most_common(KEYWORD_NUMBERS)
+  keywords = ""
+  for name, count in sorted(count):
+    keywords += name + " "
+  keywords = keywords[0:-1]
+  return keywords
 
 def getFileTextLen(path):
   with open(path,'r',encoding='UTF8') as file:
@@ -117,63 +117,64 @@ for diff_index_A in DiffIndex.iter_change_type('A'):
   target_diff_index_array.append(diff_index_A)
 
 
-if target_diff_index_array:
-  # iterate each modified file
-  for diff_index in target_diff_index_array:
-    file_path = os.path.join(gitPath,diff_index.b_path)
-    wholeSendtences = diff_index.diff.decode('utf-8')
+if len(target_diff_index_array) == 0:
+  print("Nothing todo")
 
-    # initialize collecting data
-    sentence = ""
-    rowRecipe = {}
-    newCharacterNumbers = 0
-    previouChar = ""
-    # iterate git-diff-lines
-    for (index, line) in enumerate(wholeSendtences.split("\n")):
-      # ignore option line.
-      if line[-2:] == "@@":
-        headInfoArr = line.split(" ")
-        newCharacterNumbers = headInfoArr[2][1:]
-        index = newCharacterNumbers.find(",")
-        if index != -1:
-          newCharacterNumbers = newCharacterNumbers[0:index]
-        continue
+for diff_index in target_diff_index_array:
+  file_path = os.path.join(gitPath,diff_index.b_path)
+  wholeSendtences = diff_index.diff.decode('utf-8')
+
+  # initialize collecting data
+  sentence = ""
+  rowRecipe = {}
+  newCharacterNumbers = 0
+  previouChar = ""
+  # iterate git-diff-lines
+  for (index, line) in enumerate(wholeSendtences.split("\n")):
+    # ignore option line.
+    if line[-2:] == "@@":
+      headInfoArr = line.split(" ")
+      newCharacterNumbers = headInfoArr[2][1:]
+      index = newCharacterNumbers.find(",")
+      if index != -1:
+        newCharacterNumbers = newCharacterNumbers[0:index]
+      continue
+    
+    matchedLine = re.match(r'^\+(.*)', line)
+    striptedString = ""
+    if previouChar == "-" and line[0:1] == "-":
+      matchedLine = re.match(r'^\-(.*)', line)
       
-      matchedLine = re.match(r'^\+(.*)', line)
-      striptedString = ""
-      if previouChar == "-" and line[0:1] == "-":
-        matchedLine = re.match(r'^\-(.*)', line)
-        
-      if matchedLine is not None:
-        matchedLine = matchedLine.group(1)
-        striptedString = line.lstrip()
-        sentence += matchedLine
-      previouChar = line[0:1]
+    if matchedLine is not None:
+      matchedLine = matchedLine.group(1)
+      striptedString = line.lstrip()
+      sentence += matchedLine
+    previouChar = line[0:1]
 
-    rowRecipe['FileName'] = file_path
-    rowRecipe['Date'] =  datetime.datetime.now()
-    rowRecipe['TotalCharacters'] = getFileTextLen(file_path)
-    rowRecipe['TotalKeyward'] = analyzeWholeText(file_path)
-    rowRecipe['ChangedCharacters'] = newCharacterNumbers
-    rowRecipe['ChangedKeyward'] = getMostUsedWords(sentence)
+  rowRecipe['FileName'] = file_path
+  rowRecipe['Date'] =  datetime.datetime.now()
+  rowRecipe['TotalCharacters'] = getFileTextLen(file_path)
+  rowRecipe['TotalKeyward'] = analyzeWholeText(file_path)
+  rowRecipe['ChangedCharacters'] = newCharacterNumbers
+  rowRecipe['ChangedKeyward'] = getMostUsedWords(sentence)
 
-    """
-    TODO: english word is ignored. in these steps. It could be enhanced.
-    # rowRecipe['TotalKeyward'] = analyzeEngDoc(file_path)
-    """
-    csvQueue.append(rowRecipe)
+  """
+  TODO: english word is ignored. in these steps. It could be enhanced.
+  # rowRecipe['TotalKeyward'] = analyzeEngDoc(file_path)
+  """
+  csvQueue.append(rowRecipe)
 
 # Write file
 with open(statisticalPath, "a", encoding = 'utf-8') as dataCsv:
-  wr = csv.writer(dataCsv)
-  for dict in csvQueue:
-    wr.writerow([
-    dict['FileName'],
-    dict['Date'],
-    dict['TotalCharacters'],
-    dict['TotalKeyward'],
-    dict['ChangedCharacters'],
-    dict['ChangedKeyward']
-    ])
+wr = csv.writer(dataCsv)
+for dict in csvQueue:
+  wr.writerow([
+  dict['FileName'],
+  dict['Date'],
+  dict['TotalCharacters'],
+  dict['TotalKeyward'],
+  dict['ChangedCharacters'],
+  dict['ChangedKeyward']
+  ])
 
 
