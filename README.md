@@ -79,7 +79,8 @@ App printout each operating command. It Works only for bear notes with '#test' t
 If you don't know exactly how the program works, I recommend watching it work and applying every documents.
 
 ### test Method
+At project root
 ```bash
-python test/test_export_sync.py
+python -m unittest
 ```
-if you want function test, try next command at app root directory
+if you want function test, try next command at app root directoryf
