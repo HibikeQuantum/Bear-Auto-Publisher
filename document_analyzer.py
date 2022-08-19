@@ -1,5 +1,4 @@
 # package for analyze
-from konlpy.utils import pprint
 from konlpy.tag import Kkma
 # There are other options, for example Okt, Komoran, Hannanum
 from collections import  Counter
@@ -58,6 +57,7 @@ NOT USED NOW
 #     # return keywords
 #     print(top5,"fd3")
 #     return top5
+
 
 def getMostUsedWords(text):
   okt = Kkma()
@@ -166,15 +166,18 @@ for diff_index in target_diff_index_array:
 
 # Write file
 with open(statisticalPath, "a", encoding = 'utf-8') as dataCsv:
-wr = csv.writer(dataCsv)
-for dict in csvQueue:
-  wr.writerow([
-  dict['FileName'],
-  dict['Date'],
-  dict['TotalCharacters'],
-  dict['TotalKeyward'],
-  dict['ChangedCharacters'],
-  dict['ChangedKeyward']
-  ])
+  wr = csv.writer(dataCsv)
+  for dict in csvQueue:
+    wr.writerow([
+    dict['FileName'],
+    dict['Date'],
+    dict['TotalCharacters'],
+    dict['TotalKeyward'],
+    dict['ChangedCharacters'],
+    dict['ChangedKeyward']
+    ])
+
+print("_______________________________________________________")
+print("Write is over! ", len(csvQueue), " rows are inserted at CSV")
 
 

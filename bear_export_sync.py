@@ -36,7 +36,6 @@ or leave list empty for all notes: `limit_export_to_tags = []`
 * Can export and link to images in common image repository
 * Or export as textbundles with images included
 '''
-
 make_tag_folders = False  # Exports to folders using first tag only, if `multi_tag_folders = False`
 multi_tag_folders = True  # Copies notes to all 'tag-paths' found in note!
                           # Only active if `make_tag_folders = True`
@@ -94,6 +93,10 @@ import shutil
 import fnmatch
 import json
 import argparse
+
+
+p = os.path.abspath('.')
+sys.path.insert(1, p)
 
 parser = argparse.ArgumentParser(description="Sync Bear notes")
 parser.add_argument("--backup", default=default_backup_folder, help="Path where conflicts will be backed up (must be outside of --out)")
