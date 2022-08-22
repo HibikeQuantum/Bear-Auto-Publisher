@@ -222,6 +222,7 @@ if [ "${allowPush}" == "true" ]; then
     python3 ${CWD}/document_analyzer.py
     if [ "$?" -eq 0 ]; then
       echo "[INFO] document_analyzer process is completed"
+      cp ${WORKING_PATH}/changeSTAT.svg ${EXPORT_OUTPUT_PATH}/
     else
       echo "[ERROR] Failed to running document_analyzer process. Program will be terminated"
     exit 1

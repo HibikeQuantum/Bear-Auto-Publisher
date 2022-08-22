@@ -15,11 +15,9 @@ pd.options.display.float_format = '{:.0f}'.format
 
 # package for Visualize data
 from bokeh.plotting import figure, show
-from bokeh.io import export_svg
+from bokeh.io import export_png ,export_svg
 from bokeh.models import HoverTool, ColumnDataSource, LinearAxis, Range1d
-from bokeh.palettes import GnBu3, OrRd3
-
-
+from bokeh.palettes import GnBu3
 
 # debug tool
 
@@ -184,6 +182,7 @@ def anlayzeDiffIndex(diff_index_array):
       previouChar = line[0:1]
     myDate = datetime.datetime.now().strftime('%Y-%m-%d')
     #end one diff index.
+    
     rowRecipe['FileName'] = fileName
     rowRecipe['Date'] = myDate
     rowRecipe['TotalCharacters'] = getFileTextLen(filePath)
@@ -219,17 +218,18 @@ def appendDataToCSV(recipeArr):
   print("_______________________________________________________")
   print("[INFO] Write is over! ", len(recipeArr), " rows are inserted at CSV")
 
+
 def bokeTestZone():
   # Data frame operatation
-  df = pd.read_csv(STATS_CSV_PATH)
+  df = pd.read_csv(STATS_CSV_PATH, on_bad_lines='skip')
   df.columns = ['filePath', 'datetime', 'docLen', 'docKeyword', 'newLen', 'newKeyword']
 
   df = df.astype(dtype={'filePath': 'string', 'docKeyword':'string', 'newKeyword': 'string'})
   df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d')
   df2 = df
 
-  gdf = df.groupby('datetime', as_index = False)['docLen', 'newLen'].sum()
-  g2df = df2.groupby('datetime', as_index = False)['filePath', 'docKeyword', 'newKeyword'].sum()
+  gdf = df.groupby('datetime', as_index = False)[['docLen', 'newLen']].apply(sum)
+  g2df = df2.groupby('datetime', as_index = False)[['filePath', 'docKeyword', 'newKeyword']].sum()
   maxV = gdf['newLen'].max()
   minV = gdf['newLen'].max()
   if minV == maxV:
@@ -256,8 +256,9 @@ def bokeTestZone():
     ],
       mode='vline'
   ))
-
-  show(p)
+  show(p, browser="chrome")
+  p.output_backend = "svg"
+  export_svg(p, filename="Working/changeSTAT.svg")
 
 def main():
   initializeData()
