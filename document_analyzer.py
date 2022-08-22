@@ -7,6 +7,23 @@ from collections import  Counter
 import json, re, csv, os, datetime, sys
 from git import Repo
 
+# package for data operating
+import pandas as pd
+import numpy as np
+
+pd.options.display.float_format = '{:.0f}'.format
+
+# package for Visualize data
+from bokeh.plotting import figure, show
+from bokeh.io import export_svg
+from bokeh.models import HoverTool, ColumnDataSource, LinearAxis, Range1d
+from bokeh.palettes import GnBu3, OrRd3
+
+
+
+# debug tool
+
+from pprint import pprint as pp
 
 """
 NOT USED NOW
@@ -38,7 +55,6 @@ STATS_CSV_PATH = os.path.join(PWD, "Working/Statiscal_data/publishData.csv")
 KEYWORD_NUMBERS = 10
 
 """ Global Variables"""
-
 
 """
 NOT USED NOW
@@ -136,6 +152,7 @@ def anlayzeDiffIndex(diff_index_array):
 
   for diff_index in diff_index_array:
     filePath = os.path.join(GIT_PATH, diff_index.b_path)
+    fileName = diff_index.b_path
     wholeSendtences = diff_index.diff.decode('utf-8')
 
     # initialize collecting data
@@ -165,10 +182,10 @@ def anlayzeDiffIndex(diff_index_array):
         matchedLine = matchedLine.group(1)
         sentence += matchedLine
       previouChar = line[0:1]
-
+    myDate = datetime.datetime.now().strftime('%Y-%m-%d')
     #end one diff index.
-    rowRecipe['FileName'] = filePath
-    rowRecipe['Date'] =  datetime.datetime.now()
+    rowRecipe['FileName'] = fileName
+    rowRecipe['Date'] = myDate
     rowRecipe['TotalCharacters'] = getFileTextLen(filePath)
     rowRecipe['TotalKeyward'] = analyzeWholeText(filePath)
     rowRecipe['ChangedCharacters'] = newCharacterNumbers
@@ -202,12 +219,52 @@ def appendDataToCSV(recipeArr):
   print("_______________________________________________________")
   print("[INFO] Write is over! ", len(recipeArr), " rows are inserted at CSV")
 
+def bokeTestZone():
+  # Data frame operatation
+  df = pd.read_csv(STATS_CSV_PATH)
+  df.columns = ['filePath', 'datetime', 'docLen', 'docKeyword', 'newLen', 'newKeyword']
+
+  df = df.astype(dtype={'filePath': 'string', 'docKeyword':'string', 'newKeyword': 'string'})
+  df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d')
+  df2 = df
+
+  gdf = df.groupby('datetime', as_index = False)['docLen', 'newLen'].sum()
+  g2df = df2.groupby('datetime', as_index = False)['filePath', 'docKeyword', 'newKeyword'].sum()
+  maxV = gdf['newLen'].max()
+  minV = gdf['newLen'].max()
+  if minV == maxV:
+    minV=0
+  intergratedDF = gdf.merge(g2df, how='left')
+  source = ColumnDataSource(data=intergratedDF)
+  # Plot option setting
+  p = figure(x_axis_type='datetime', plot_height=350, plot_width=900)
+  p.xaxis.axis_label = 'day'
+  p.yaxis.axis_label = 'Document Length Total'
+  p.extra_y_ranges = {"newLen": Range1d(start=minV*1.15, end=maxV*1.15)}
+  p.add_layout(LinearAxis(y_range_name="newLen"), 'right')
+  p.line(x='datetime', y='docLen', line_width=4, color=GnBu3[1], legend_label='수정된 문서의 양', source=source)
+  p.vbar(x='datetime', top='newLen', y_range_name="newLen",width=1, bottom=0, color="red", legend_label='수정된 양', source=source)
+
+  p.add_tools(HoverTool(
+      tooltips=[
+    ('날짜', '@datetime'),
+    ('문서 이름', '@filePath'),
+    ('관련된 문서 길이', '@docLen'),
+    ('문서 키워드', '@docKeyword'),
+    ('추가된 문자 길이', '@newLen'),
+    ('추가된 문자 키워드', '@newKeyword'),
+    ],
+      mode='vline'
+  ))
+
+  show(p)
 
 def main():
   initializeData()
   diff_index_array = getChangedDiffIndexArray()
   csvQueue = anlayzeDiffIndex(diff_index_array)
   appendDataToCSV(csvQueue)
+  bokeTestZone()
 
 
 if __name__ == '__main__':
