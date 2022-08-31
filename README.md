@@ -85,14 +85,20 @@ The other features are not considered.
 
 ## Use Tip
 - If necessary, you can register the shell on the Cron tab and see it automatically upload data.
-
+- At Bear APP, Search with the following keywords(it's default keyword that I used) to see which documents are uploaded. Check the risk of unwanted files being uploaded.
+```
+-#private -#secret -#temporary
+```
 # For developers or Beginner
 ## Developer mode running
 ```bash
 sh AutoPublish.sh --devMode
 ```
-with this argument, App will printout each operating command. And exporting only for bear notes with `#test`' tag.
-If you don't know exactly how the program works and has worried about programs work, I recommend it to running with the argument and then execute program without `--devMode`
+with this argument, App will printout each operating command. And exporting only for bear notes with `#test`' tag.  
+
+If you don't know exactly how the program works or are worring about program working, I recommend it to running with the devMode argument and then execute program without `--devMode`
+
+
 
 ## Running unittest
 if you want unit test, try below command at app root directory
