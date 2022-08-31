@@ -111,7 +111,7 @@ fi
 )
 
 echo "-----------------------------------------py-------------------------------------------"
-python3 ${CWD}/bear_export_sync.py
+python3 ${CWD}/bear_export.py
 if [ "$?" -eq 0 ]; then
   echo "[INFO] export process is completed"
 else
