@@ -6,7 +6,7 @@ import sys
 p = os.path.abspath('.')
 sys.path.insert(1, p)
 
-import bear_export_sync as BES
+import bear_export as BES
 
 sentence_dict = {
   "sentence":"sentence",

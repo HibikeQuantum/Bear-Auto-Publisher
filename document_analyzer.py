@@ -15,22 +15,15 @@ pd.options.display.float_format = '{:.0f}'.format
 
 # package for Visualize data
 from bokeh.plotting import figure, show
-from bokeh.io import export_png ,export_svg
+from bokeh.io import export_svg
 from bokeh.models import HoverTool, ColumnDataSource, LinearAxis, Range1d
 from bokeh.palettes import GnBu3
 
 # debug tool
-
 from pprint import pprint as pp
 
-"""
-NOT USED NOW
-"""
-# import nltk
-# nltk.download('gutenberg')
-# # english analyze
-# from nltk import regexp_tokenize
-# from nltk.corpus import gutenberg
+# browser
+import webbrowser
 
 """ 
 # recipe data structure preview 
@@ -50,9 +43,10 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 CONFIG_JSON_PATH = os.path.join(PWD, "config/config.json")
 DATA_JSON_PATH = os.path.join(PWD, "config/data.json")
 STATS_CSV_PATH = os.path.join(PWD, "Working/Statiscal_data/publishData.csv")
+SVG_OUTPUT_PATH = "Working/changeSTAT.svg"
 KEYWORD_NUMBERS = 10
-
 """ Global Variables"""
+
 
 """
 NOT USED NOW
@@ -96,16 +90,24 @@ def getMostUsedWords(text):
 
 
 def getFileTextLen(path):
-  with open(path,'r',encoding='UTF8') as file:
-    text = file.read()
-    splitdata = text.split()
-    return len(splitdata)
+  if os.path.isfile(path):
+    with open(path,'r',encoding='UTF8') as file:
+      text = file.read()
+      splitdata = text.split()
+      return len(splitdata)
+  else:
+    # The File had deleted.
+    return 0
 
 
 def analyzeWholeText(path):
-  with open(path,'r',encoding='UTF8') as file:
-    text = file.read()
-    return getMostUsedWords(text)
+  if os.path.isfile(path):
+    with open(path,'r',encoding='UTF8') as file:
+      text = file.read()
+      return getMostUsedWords(text)
+  else:
+    # The File had deleted.
+    return ""
 
 
 def initializeData():
@@ -150,6 +152,9 @@ def anlayzeDiffIndex(diff_index_array):
 
   for diff_index in diff_index_array:
     filePath = os.path.join(GIT_PATH, diff_index.b_path)
+    if diff_index.b_path.find("last_commit_message.txt") == 0:
+      continue
+
     fileName = diff_index.b_path
     wholeSendtences = diff_index.diff.decode('utf-8')
 
@@ -256,9 +261,9 @@ def bokeTestZone():
     ],
       mode='vline'
   ))
-  show(p, browser="chrome")
   p.output_backend = "svg"
-  export_svg(p, filename="Working/changeSTAT.svg")
+  export_svg(p, filename=SVG_OUTPUT_PATH)
+  webbrowser.open('file://' + os.path.realpath(SVG_OUTPUT_PATH))
 
 def main():
   initializeData()

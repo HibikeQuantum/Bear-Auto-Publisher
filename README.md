@@ -1,86 +1,101 @@
 # Bear-Auto-Publisher
-Markdown export from Bear sqlite database and publishing at github repository
+Markdown export from Bear SQLite database and publishing at GitHub repository
 
 ## Component
-***bear_export_sync.py***   
-**Version 0.1, 2022-07-26**
+***bear_export.py***   
+Version 1.00 (Release. 2022-08-31)  
+Python script for export and change markdown format for GitHub markdown.
 
-Python script for export and change markdown format for github markdown.
+***document_analyzer.py***   
+Version 1.00 (Release. 2022-08-31)  
+Python script for analyzing string data and visualizing document's changing information.
 
 ***AutoPublish.sh***
-**Version 0.1, 2022-07-26**
-Bash Script. Its endpoint of 'bear_export_sync.py'. This script read config and data from 'config' directory. and excecute python scirpt. and commit in your .git workspace and push automatically.
+Version 1.00 (Release. 2022-08-31)
+Bash Script. Its endpoint of 'bear_export.py' and 'document_analyzer.py' can read configuration and data from 'config' directory. And execute the python script after then command commit at your .git workspace and push GitHub upstream automatically.
 
-There is no need to worry about the BEAR document. Only read and various changes to the document are made to the copied work. You can still use the bare app as it is. This program does not have the ability to synchronize once extracted data back to the bear. Don't worry.
+There is no need to worry about the BEAR document. This app only read data from bear SQLite and various change works occurred at exported files. You can still use the Bare app as it is. This program cannot synchronize once extracted data to the BEAR app. Don't worry!
 
-## install
-1. git clone https://github.com/HibikeQuantum/Bear-Auto-Publisher.git
-2. insert your environment data at `/config/config.json`
-3. Remind, your export destination (`gitPath`) should be managed by `.git` (this program use git command) if u want more detail look this doc (https://github.com/git-guides/git-init)
-4. Remind, your shell has permission to git repository 'master' and This program did not support interative case of git. (like input password, email.. )
-5. and just command `sh AutoPublish.sh`
+## recommend environment for executing
+- global python command should be linked with python3 (python 3.9.6 is confirmed to have been executed)
+- bash 3.2.57, 5.1.57 are confirmed to have been executed
 
-## Config
+brew install pyenv
+
+## install and execute
+1. Download app by git clone or zip
+```
+git clone https://GitHub.com/HibikeQuantum/Bear-Auto-Publisher.git
+```
+2. Install jq command at your shell. (jq is CLI tool to operate json file)
+```
+brew install jq
+```
+3. insert your environment data
+```
+vi Bear-Auto-Publisher/config/config.json
+```
+4. Remind, your export destination (`gitPath`) should be managed by `.git`. Because this program use git command. If you want more detail about git. please check the next document [link](https://GitHub.com/git-guides/git-init)](https://GitHub.com/git-guides/git-init)
+5. Remind, your shell has permission to git repository 'master' and This program did not support an interactive case of git. (like input password, email.. )
+6. Exceute end point program 'AutoPublish.sh 
+```
+sh AutoPublish.sh
+```
+
+###### WARNING
+```diff
+'AutoPublish.sh' has rm command that works in "BEAR-AUTO-PUBLISHER/Working" directory and "exportPath" directory
+So never place a another file at these paths
+```
+
+## Configuration Guide
 Check `/config/config.json` before running `AutoPublish.sh`
 ```json
 {
-  "secretTags": ["secret","secret2"],
+  "secretTags": ["secret","temporary", "private"],
   "noIamgeTags": ["copyright","fastcampus"],
   "allowTags": [],
   "githubPath": "https://github.com/HibikeQuantum/PlayGround",
-  "gitPath":"/Users/kth/PlayGround/Bear",
+  "gitPath":"/Users/kth/Code/PlayGround",
+  "exportPath": "/Users/kth/Code/PlayGround/Bear",
+  "targetBranch" : "master",
   "allowPush": true,
   "allowOpenDiffAtGithub": true,
   "allowOpenSecretDiff": true,
-  "automaticApprove": true
+  "automaticApprove": true,
+  "executeAnalyzing": true
 }
 ```
-
-**'AutoPublish.sh' has rm command that working in "BEAR-AUTO-PUBLISHER/Working" directory and "gitPath" directory**
-So never place a another file these path. 
-
-Description of each key(config.json) below
-- `"secretTags": ["secret","secret2"] ` It is tag setting that tracking but not upload your github.
-- `"noIamgeTags": ["copyright","fastcampus"]` It is tag setting that tracking but the documents has these tag will not upload attached image.
+#### Description of each key(config.json) below
+- `"secretTags": ["secret","secret2"] ` It is tag setting that tracking but not upload your GitHub.
+- `"noIamgeTags": ["copyright", "fastcampus"]` It is tag setting that tracking but the documents has these tag will not upload an attached image.
 - `"allowTags": []` It is tag setting that Upload only files with the tags you entered. By default, all documents are posted except documents that have a screed tag.
-- `"githubPath": "https://github.com/HibikeQuantum/PlayGround"` Insert your github remote repository that related `gitPath`
+- `"GitHubPath": "https://GitHub.com/HibikeQuantum/PlayGround"` Insert your GitHub remote repository that is related `gitPath`
 - `"gitPath":"/Users/kth/PlayGround/Bear"` It is intended to operate based on the master branch. We will support more specific movements later.
-- `"allowPush": true` If it is false, it did not upload data your github
-- `"allowOpenDiffAtGithub": true` If it is false, It does not open browser to show file change information by commit.
-- `"allowOpenSecretDiff": true` If it is false, It does not open default texteditor to show file change information by commit. (if you want use other program. https://support.apple.com/en-ke/guide/mac-help/mh35597/mac)
-- `"automaticApprove": true` true If it is false, it asks if you want to upload it or not every time you run the program.
+- `"allowPush": true` If it is false, it did not upload data to your GitHub
+- `"allowOpenDiffAtGitHub": true` If it is false, It does not open browser to show file change information by commit.
+- `"allowOpenSecretDiff": true` If it is false, It does not open default texteditor to show file change information by commit. (if you want use other program.  Read next link https://support.apple.com/en-ke/guide/mac-help/mh35597/mac)
+- `"automaticApprove": true` If it is false, it asks if you want to upload it or not every time you run the program.
+- `"executeAnalyzing": true` If it is false, App should not analyze documents data and did not generate csv file
 
-*See also: [Bear Power Pack](https://github.com/rovest/Bear-Power-Pack/blob/master/README.md)*
-
-## Usage
-
-```
-sh -e AutoPublish.sh
-```
-
-See `--help` for more.
-
-## Features
-
-**Don't be confused.**
-The 'Bear-Auto-Publisher' is completely different program from the original program before forking. 
-It is a program that only cares about document diff checking and uploading document to github and change document format to git-markdown format.
-The other features are not considered. So never try other function in original. The depricated code will be deleted after beta release.
+**Caution**
+The 'Bear-Auto-Publisher' is a completely different program from the original program before forking. 
+It is a program that only cares about document diff checking and uploading documents to GitHub and changing document format to git-markdown format.
+The other features are not considered.
 
 ## Use Tip
 - If necessary, you can register the shell on the Cron tab and see it automatically upload data.
 
-# For developer or Beginner
-### devMode running
+# For developers or Beginner
+## Developer mode running
 ```bash
 sh AutoPublish.sh --devMode
 ```
-App printout each operating command. It Works only for bear notes with '#test' tag.
-If you don't know exactly how the program works, I recommend watching it work and applying every documents.
+with this argument, App will printout each operating command. And exporting only for bear notes with `#test`' tag.
+If you don't know exactly how the program works and has worried about programs work, I recommend it to running with the argument and then execute program without `--devMode`
 
-### test Method
-At project root
+## Running unittest
+if you want unit test, try below command at app root directory
 ```bash
 python -m unittest
 ```
-if you want function test, try next command at app root directoryf
