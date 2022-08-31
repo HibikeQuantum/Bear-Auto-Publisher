@@ -62,10 +62,7 @@ import sqlite3
 import datetime
 import re
 import subprocess
-import urllib.parse
-import time
 import shutil
-import fnmatch
 import json
 import argparse
 
