@@ -22,6 +22,9 @@ from bokeh.palettes import GnBu3
 # debug tool
 from pprint import pprint as pp
 
+# browser
+import webbrowser
+
 """ 
 # recipe data structure preview 
 
@@ -40,6 +43,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 CONFIG_JSON_PATH = os.path.join(PWD, "config/config.json")
 DATA_JSON_PATH = os.path.join(PWD, "config/data.json")
 STATS_CSV_PATH = os.path.join(PWD, "Working/Statiscal_data/publishData.csv")
+SVG_OUTPUT_PATH = "Working/changeSTAT.svg"
 KEYWORD_NUMBERS = 10
 """ Global Variables"""
 
@@ -257,9 +261,9 @@ def bokeTestZone():
     ],
       mode='vline'
   ))
-  show(p, browser="chrome")
   p.output_backend = "svg"
-  export_svg(p, filename="Working/changeSTAT.svg")
+  export_svg(p, filename=SVG_OUTPUT_PATH)
+  webbrowser.open('file://' + os.path.realpath(SVG_OUTPUT_PATH))
 
 def main():
   initializeData()
