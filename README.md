@@ -57,7 +57,7 @@ Check `/config/config.json` before running `AutoPublish.sh`
 ```
 #### Description of each key(config.json) below
 - `"secretTags": ["secret","secret2"] ` It is tag setting that tracking but not upload your GitHub.
-- `"noIamgeTags": ["copyright", "fastcampus"]` It is tag setting that tracking but the documents has these tag will not upload an attached image.
+- `"noIamgeTags": ["copyright", "fastcampus"]` This option is disabled now. It is tag setting that tracking but the documents has these tag will not upload an attached image.
 - `"allowTags": []` It is tag setting that Upload only files with the tags you entered. By default, all documents are posted except documents that have a screed tag.
 - `"GitHubPath": "https://GitHub.com/HibikeQuantum/PlayGround"` Insert your GitHub remote repository that is related `gitPath`
 - `"gitPath":"/Users/kth/Code/PlayGround"` Place of .git file
