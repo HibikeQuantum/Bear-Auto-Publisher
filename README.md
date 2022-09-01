@@ -1,17 +1,19 @@
 # Bear-Auto-Publisher
 Markdown export from Bear SQLite database and publishing at GitHub repository
 
+[한국어 소개 블로그](https://hibikequantum.github.io/devlog/SideProject-1)
+
 ## Component
 ***bear_export.py***   
-Version 1.00 (Release. 2022-08-31)  
+Version 1.01 (Release. 2022-09-01)  
 Python script for export and change markdown format for GitHub markdown.
 
 ***document_analyzer.py***   
-Version 1.00 (Release. 2022-08-31)  
+Version 1.01 (Release. 2022-09-01)  
 Python script for analyzing string data and visualizing document's changing information.
 
 ***AutoPublish.sh***
-Version 1.00 (Release. 2022-08-31)
+Version 1.01 (Release. 2022-09-01)
 Bash Script. Its endpoint of 'bear_export.py' and 'document_analyzer.py' can read configuration and data from 'config' directory. And execute the python script after then command commit at your .git workspace and push GitHub upstream automatically.
 
 There is no need to worry about the BEAR document. This app only read data from bear SQLite and various change works occurred at exported files. You can still use the Bare app as it is. This program cannot synchronize once extracted data to the BEAR app. Don't worry!
@@ -74,7 +76,9 @@ Check `/config/config.json` before running `AutoPublish.sh`
 - `"noIamgeTags": ["copyright", "fastcampus"]` It is tag setting that tracking but the documents has these tag will not upload an attached image.
 - `"allowTags": []` It is tag setting that Upload only files with the tags you entered. By default, all documents are posted except documents that have a screed tag.
 - `"GitHubPath": "https://GitHub.com/HibikeQuantum/PlayGround"` Insert your GitHub remote repository that is related `gitPath`
-- `"gitPath":"/Users/kth/PlayGround/Bear"` It is intended to operate based on the master branch. We will support more specific movements later.
+- `"gitPath":"/Users/kth/Code/PlayGround"` Place of .git file
+- `"exportPath": "/Users/kth/Code/PlayGround/Bear"`, Place of md exported file. It should subdirectory or same directory of gitPath
+- `"targetBranch" : "master"` origin github upstream branch name. Basically, 'main' is latest dafault value.
 - `"allowPush": true` If it is false, it did not upload data to your GitHub
 - `"allowOpenDiffAtGitHub": true` If it is false, It does not open browser to show file change information by commit.
 - `"allowOpenSecretDiff": true` If it is false, It does not open default texteditor to show file change information by commit. (if you want use other program.  Read next link https://support.apple.com/en-ke/guide/mac-help/mh35597/mac)
