@@ -21,8 +21,6 @@ There is no need to worry about the BEAR document. This app only read data from 
 - global python command should be linked with python3 (python 3.9.6 is confirmed to have been executed)
 - bash 3.2.57, 5.1.57 are confirmed to have been executed
 
-brew install pyenv
-
 ## install and execute
 1. Download app by git clone or zip
 ```
@@ -91,6 +89,8 @@ The other features are not considered.
 ## Use Tip
 - If necessary, you can register the shell on the Cron tab and see it automatically upload data.
 - At Bear APP, Search with the following keywords(it's default keyword that I used) to see which documents are uploaded. Check the risk of unwanted files being uploaded.
+- Analyzed data graph is saved by `/Working/changeSTAT.html`, `/Working/changeSTAT.svg`
+- Analyzed original data is save by `/Working/Statiscal_data/publishData.csv`
 ```
 -#private -#secret -#temporary
 ```

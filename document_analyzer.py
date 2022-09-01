@@ -22,9 +22,6 @@ from bokeh.palettes import GnBu3
 # debug tool
 from pprint import pprint as pp
 
-# browser
-import webbrowser
-
 """ 
 # recipe data structure preview 
 
