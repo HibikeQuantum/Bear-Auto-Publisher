@@ -49,8 +49,8 @@ sh AutoPublish.sh
 
 ###### WARNING
 ```diff
-'AutoPublish.sh' has rm command that works in "BEAR-AUTO-PUBLISHER/Working" directory and "exportPath" directory
-So never place a another file at these paths
+- 'AutoPublish.sh' has rm command that works in "BEAR-AUTO-PUBLISHER/Working" directory and "exportPath" directory
+- So never place a another file at these paths
 ```
 
 ## Configuration Guide
