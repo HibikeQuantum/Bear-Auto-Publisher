@@ -1,5 +1,5 @@
 # Bear-Auto-Publisher
-Markdown export from Bear SQLite database and publishing at GitHub repository
+Markdown export from Bear SQLite database and publishing at GitHub repository  
 [한국어 소개 블로그](https://hibikequantum.github.io/devlog/SideProject-1)
 
 ## recommend environment for running
