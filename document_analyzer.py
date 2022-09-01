@@ -4,12 +4,11 @@ from konlpy.tag import Kkma
 from collections import  Counter
 
 # package for file read /write feat.
-import json, re, csv, os, datetime, sys
+import json, re, csv, os, datetime, sys, subprocess, platform
 from git import Repo
 
 # package for data operating
 import pandas as pd
-import numpy as np
 
 pd.options.display.float_format = '{:.0f}'.format
 
@@ -222,7 +221,7 @@ def appendDataToCSV(recipeArr):
   print("[INFO] Write is over! ", len(recipeArr), " rows are inserted at CSV")
 
 
-def bokeTestZone():
+def visualizeData():
   # Data frame operatation
   df = pd.read_csv(STATS_CSV_PATH, on_bad_lines='skip')
   df.columns = ['filePath', 'datetime', 'docLen', 'docKeyword', 'newLen', 'newKeyword']
@@ -264,13 +263,16 @@ def bokeTestZone():
   export_svg(p, filename=SVG_OUTPUT_PATH)
   save(p)
   
+  if platform.system() == 'Darwin':       # macOS
+    subprocess.call(('open', HTML_OUTPUT_PATH))
+  
 
 def main():
   initializeData()
   diff_index_array = getChangedDiffIndexArray()
   csvQueue = anlayzeDiffIndex(diff_index_array)
   appendDataToCSV(csvQueue)
-  bokeTestZone()
+  visualizeData()
 
 
 if __name__ == '__main__':
