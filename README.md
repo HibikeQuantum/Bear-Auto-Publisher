@@ -1,22 +1,6 @@
 # Bear-Auto-Publisher
 Markdown export from Bear SQLite database and publishing at GitHub repository
-
 [한국어 소개 블로그](https://hibikequantum.github.io/devlog/SideProject-1)
-
-## Component
-***bear_export.py***   
-Version 1.01 (Release. 2022-09-01)  
-Python script for export and change markdown format for GitHub markdown.
-
-***document_analyzer.py***   
-Version 1.01 (Release. 2022-09-01)  
-Python script for analyzing string data and visualizing document's changing information.
-
-***AutoPublish.sh***
-Version 1.01 (Release. 2022-09-01)
-Bash Script. Its endpoint of 'bear_export.py' and 'document_analyzer.py' can read configuration and data from 'config' directory. And execute the python script after then command commit at your .git workspace and push GitHub upstream automatically.
-
-There is no need to worry about the BEAR document. This app only read data from bear SQLite and various change works occurred at exported files. You can still use the Bare app as it is. This program cannot synchronize once extracted data to the BEAR app. Don't worry!
 
 ## recommend environment for running
 - MacOS
@@ -40,7 +24,7 @@ pip install -r requirements.txt
 ```
 vi Bear-Auto-Publisher/config/config.json
 ```
-5. Remind, your export destination (`gitPath`) should be managed by `.git`. Because this program use git command. If you want more detail about git. please check the next document [link](https://GitHub.com/git-guides/git-init)](https://GitHub.com/git-guides/git-init)
+5. Remind, your export destination (`gitPath`) should be managed by `.git`. Because this program use git command. If you want more detail about git. please check the next document [link](https://GitHub.com/git-guides/git-init)
 6. Remind, your shell has permission to git repository 'master'. This program did not support an interactive case of git. (like input password, email.. ). So an automatic authentication process is required.
 7. Exceute end point program 'AutoPublish.sh 
 ```
@@ -89,6 +73,21 @@ Check `/config/config.json` before running `AutoPublish.sh`
 The 'Bear-Auto-Publisher' is a completely different program from the original program before forking. 
 It is a program that only cares about document diff checking and uploading documents to GitHub and changing document format to git-markdown format.
 The other features are not considered.
+
+## Component description
+***bear_export.py***   
+Version 1.01 (Release. 2022-09-01)  
+Python script for export and change markdown format for GitHub markdown.
+
+***document_analyzer.py***   
+Version 1.01 (Release. 2022-09-01)  
+Python script for analyzing string data and visualizing document's changing information.
+
+***AutoPublish.sh***
+Version 1.01 (Release. 2022-09-01)
+Bash Script. Its endpoint of 'bear_export.py' and 'document_analyzer.py' can read configuration and data from 'config' directory. And execute the python script after then command commit at your .git workspace and push GitHub upstream automatically.
+
+There is no need to worry about the BEAR document. This app only read data from bear SQLite and various change works occurred at exported files. You can still use the Bare app as it is. This program cannot synchronize once extracted data to the BEAR app. Don't worry!
 
 ## Use Tip
 - If necessary, you can register the shell on the Cron tab and see it automatically upload data.
