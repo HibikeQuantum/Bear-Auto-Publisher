@@ -14,7 +14,7 @@ import numpy as np
 pd.options.display.float_format = '{:.0f}'.format
 
 # package for Visualize data
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure, save, output_file
 from bokeh.io import export_svg
 from bokeh.models import HoverTool, ColumnDataSource, LinearAxis, Range1d
 from bokeh.palettes import GnBu3
@@ -44,6 +44,7 @@ CONFIG_JSON_PATH = os.path.join(PWD, "config/config.json")
 DATA_JSON_PATH = os.path.join(PWD, "config/data.json")
 STATS_CSV_PATH = os.path.join(PWD, "Working/Statiscal_data/publishData.csv")
 SVG_OUTPUT_PATH = "Working/changeSTAT.svg"
+HTML_OUTPUT_PATH = "Working/changeSTAT.html"
 KEYWORD_NUMBERS = 10
 """ Global Variables"""
 
@@ -261,9 +262,11 @@ def bokeTestZone():
     ],
       mode='vline'
   ))
+  output_file(filename=HTML_OUTPUT_PATH, title="Analyzed document data graph")
   p.output_backend = "svg"
   export_svg(p, filename=SVG_OUTPUT_PATH)
-  webbrowser.open('file://' + os.path.realpath(SVG_OUTPUT_PATH))
+  save(p)
+  
 
 def main():
   initializeData()
