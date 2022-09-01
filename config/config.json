@@ -5,7 +5,7 @@
   "githubPath": "https://github.com/HibikeQuantum/PlayGround",
   "gitPath":"/Users/kth/Code/PlayGround",
   "exportPath": "/Users/kth/Code/PlayGround/Bear",
-  "targetBranch" : "master",
+  "targetBranch" : "main",
   "allowPush": true,
   "allowOpenDiffAtGithub": true,
   "allowOpenSecretDiff": true,

@@ -72,7 +72,6 @@ Check `/config/config.json` before running `AutoPublish.sh`
 **Caution**
 The 'Bear-Auto-Publisher' is a completely different program from the original program before forking. 
 It is a program that only cares about document diff checking and uploading documents to GitHub and changing document format to git-markdown format.
-The other features are not considered.
 
 ## Component description
 ***bear_export.py***   
@@ -105,8 +104,6 @@ sh AutoPublish.sh --devMode
 with this argument, App will printout each operating command. And exporting only for bear notes with `#test`' tag.  
 
 If you don't know exactly how the program works or are worring about program working, I recommend it to running with the devMode argument and then execute program without `--devMode`
-
-
 
 ## Running unittest
 if you want unit test, try below command at app root directory
