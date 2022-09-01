@@ -16,7 +16,8 @@ Bash Script. Its endpoint of 'bear_export.py' and 'document_analyzer.py' can rea
 
 There is no need to worry about the BEAR document. This app only read data from bear SQLite and various change works occurred at exported files. You can still use the Bare app as it is. This program cannot synchronize once extracted data to the BEAR app. Don't worry!
 
-## recommend environment for executing
+## recommend environment for running
+- MacOS
 - global python command should be linked with python3 (python 3.9.6 is confirmed to have been executed)
 - bash 3.2.57, 5.1.57 are confirmed to have been executed
 
@@ -31,13 +32,17 @@ git clone https://GitHub.com/HibikeQuantum/Bear-Auto-Publisher.git
 ```
 brew install jq
 ```
-3. insert your environment data
+3. Install python package (At Bear-Auto-Publisher Directory)
+```
+pip install -r requirements.txt
+```
+4. insert your environment data
 ```
 vi Bear-Auto-Publisher/config/config.json
 ```
-4. Remind, your export destination (`gitPath`) should be managed by `.git`. Because this program use git command. If you want more detail about git. please check the next document [link](https://GitHub.com/git-guides/git-init)](https://GitHub.com/git-guides/git-init)
-5. Remind, your shell has permission to git repository 'master' and This program did not support an interactive case of git. (like input password, email.. )
-6. Exceute end point program 'AutoPublish.sh 
+5. Remind, your export destination (`gitPath`) should be managed by `.git`. Because this program use git command. If you want more detail about git. please check the next document [link](https://GitHub.com/git-guides/git-init)](https://GitHub.com/git-guides/git-init)
+6. Remind, your shell has permission to git repository 'master'. This program did not support an interactive case of git. (like input password, email.. ). So an automatic authentication process is required.
+7. Exceute end point program 'AutoPublish.sh 
 ```
 sh AutoPublish.sh
 ```
