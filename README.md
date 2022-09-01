@@ -3,9 +3,10 @@ Markdown export from Bear SQLite database and publishing at GitHub repository
 [한국어 소개 블로그](https://hibikequantum.github.io/devlog/SideProject-1)
 
 ## recommend environment for running
-- MacOS
-- global python command should be linked with python3 (python 3.9.6 is confirmed to have been executed)
-- bash 3.2.57, 5.1.57 are confirmed to have been executed
+- in Bear app Preference, Enable `Markdown compatibility mode`
+- OS: `MacOS`
+- global python command should be linked with python3 (`python 3.9.6` was confirmed to have been executed), If you do not want to install package global use `pyenv` command
+- `bash 3.2.57, 5.1.57` was confirmed to have been executed
 
 ## install and execute
 1. Download app by git clone or zip
