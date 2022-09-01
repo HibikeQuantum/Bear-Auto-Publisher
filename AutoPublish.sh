@@ -214,39 +214,35 @@ if [ "${allowPush}" == "true" ]; then
   git gc --aggressive --prune=now
   git add -A;
   git add last_commit_message.txt;
-  set +e
-  )
-  # python execute
-  if [ "${executeAnalyzing}" == "true" ]; then
-    echo "-----------------------------------------py-------------------------------------------"
-    python3 ${CWD}/document_analyzer.py
-    if [ "$?" -eq 0 ]; then
-      echo "[INFO] document_analyzer process is completed"
-      cp ${WORKING_PATH}/changeSTAT.svg ${EXPORT_OUTPUT_PATH}/
-    else
-      echo "[ERROR] Failed to running document_analyzer process. Program will be terminated"
-    exit 1
-fi
-    echo "-----------------------------------------py-------------------------------------------"
-  fi
-  (
-  set -e
   cd ${EXPORT_OUTPUT_PATH};
   git commit -m "${commitMessage}";
   git push -f origin "${targetBranch}";
   git log -n 1 --pretty=format:"%H" > "${commitHashPath}";
   set +e
   )
+fi
 
-  if [ -n "${commitHashPath}" ]; then
-    echo "[INFO] Push '.md' files to Github is completed"
+if [ -n "${commitHashPath}" ]; then
+  echo "[INFO] Push '.md' files to Github is completed"
+else
+  echo "[ERROR] Failed to push data to github"
+  exit 1
+fi
+
+echo "-----------------------------------------py-------------------------------------------"
+if [ "${executeAnalyzing}" == "true" ]; then
+  python3 ${CWD}/document_analyzer.py
+  if [ "$?" -eq 0 ]; then
+    echo "[INFO] document_analyzer process is completed"
+    cp ${WORKING_PATH}/changeSTAT.svg ${EXPORT_OUTPUT_PATH}/
   else
-    echo "[ERROR] Failed to push data to github"
+    echo "[ERROR] Failed to running document_analyzer process. Program will be terminated"
     exit 1
   fi
-else
-  echo "[INFO] Configration did not allow push to your github repository. Check /config/config.json"
+else 
+  echo "Analyzing is passed"
 fi
+echo "-----------------------------------------py-------------------------------------------"
 
 commitHash=`cat $commitHashPath`
 
